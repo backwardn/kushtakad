@@ -298,3 +298,17 @@ input:not([type]):focus:not([readonly]) + label, input[type="text"]:focus:not([r
   margin: 0 auto;
   max-width: 1100px;
 }
+
+
+.icon-black {
+  background-color: white !important;
+  color: black;
+  font-size: 12px !important;
+}
+
+
+.select-wrapper + label {
+  position: absolute;
+  top: -26px;
+  font-size: 1rem !important;
+}

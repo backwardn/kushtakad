@@ -8,38 +8,49 @@
         </div>
 
         <div class="row">
-            <div class="input-field col s12">
+            <div class="input-field col">
                 <input id="name" type="text" name="name" value="{{ .Forms.Token.Name }}" required class="validate">
-                <label for="name" data-error="example: devops-nyc-01" data-success="valid">Name</label>
-                <span class="helper-text" data-error="wrong" data-success="right">A unique name for this token</span>
+                <label class="vertical-align" for="name" data-error="example: devops-nyc-01" data-success="valid">
+                    Name
+                    <a class="vertical-align tooltipped" data-position="bottom" data-tooltip="A unique name for this token"><i class="material-icons icon-black">help_outline</i></a>
+                </label>
             </div>
 
-            <div class="input-field col s12">
+            <div class="input-field col">
                 <textarea id="note" class="materialize-textarea" type="text" name="note" value="{{ .Forms.Token.Note }}" required class="validate"></textarea>
-                <label for="note">Note</label>
-                <span class="helper-text" data-error="wrong" data-success="right">Leave a note with your intentions for this token. Where will you place it? What are you hoping to accomplish? etc</span>
+                <label for="note">
+                    Note
+                    <a class="tooltipped" data-position="bottom" data-tooltip="Leave a note with your intentions for this token. Where will you place it? What are you hoping to accomplish? etc"><i class="material-icons icon-black">help_outline</i></a>
+                </label>
             </div>
 
 
             <div class="input-field col">
                 <select name="teamId">
-                    <option value="" disabled selected>Team</option>
+                    <option value="" disabled selected>---</option>
                     {{ if len .Teams }}
                         {{ range $key, $v := .Teams }}
                             <option value="{{ $v.ID }}">{{ $v.Name }}</option>
                         {{ end }}
                     {{ end }}
                 </select>
-                <span class="helper-text" data-error="wrong" data-success="right">This is the team that will get the email alerts when a token is accessed.</span>
+                <label for="team">
+                    Team
+                    <a class="tooltipped" data-position="bottom" data-tooltip="The name of the team that will recieve the email alerts."><i class="material-icons icon-black">help_outline</i></a>
+                </label>
             </div>
 
-            <div class="input-field col s12">
+            <div class="input-field col">
                 <select name="type">
-                    <option value="" disabled selected>Type</option>
+                    <option value="" disabled selected>---</option>
                     <option value="link">Link</option>
                     <option value="pdf">Pdf</option>
                     <option value="docx">Docx</option>
                 </select>
+                <label for="note">
+                   Type 
+                    <a class="tooltipped" data-position="bottom" data-tooltip="What type of token do you want to create?"><i class="material-icons icon-black">help_outline</i></a>
+                </label>
             </div>
         </div>
 
@@ -61,7 +72,7 @@
                             <th>Name</th>
                             <th>Type</th>
                             <th>Note</th>
-                            <th>Settings</th>
+                            <th>Download</th>
                             <th>Delete</th>
                         </tr>
                     </thead>
@@ -72,7 +83,7 @@
                                 <td>{{ $v.Name }}</td>
                                 <td>{{ $v.Type }}</td>
                                 <td>{{ $v.Note }}</td>
-                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/download/token/{{ $v.Type }}/{{ $v.ID }}"><i class="material-icons">settings</i></a></td>
+                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/download/token/{{ $v.Type }}/{{ $v.ID }}"><i class="material-icons">file_download</i></a></td>
                                 <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteServiceModal({ tokenID: {{ $v.ID }} type: {{ $v.Type }} } )"><i class="material-icons">delete_sweep</i></a></td>
                             </tr>
                     {{ end }}
@@ -92,5 +103,7 @@
 
     $(document).ready(function(){
         $('select').formSelect();
+        $('.tooltipped').tooltip();
     });
+
 </script>

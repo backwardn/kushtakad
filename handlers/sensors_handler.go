@@ -50,6 +50,8 @@ func PostSensors(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := r.FormValue("name")
+	note := r.FormValue("note")
+	log.Debug(name)
 	tid, err := strconv.ParseInt(r.FormValue("teamId"), 10, 64)
 	if err != nil {
 		app.Fail("Please select a team to notify")
@@ -57,7 +59,7 @@ func PostSensors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sensor := models.NewSensor(name, tid)
+	sensor := models.NewSensor(name, note, tid)
 	app.View.Forms.Sensor = sensor
 	err = sensor.ValidateCreate()
 	if err != nil {

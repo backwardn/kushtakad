@@ -26,12 +26,12 @@ func assertSize(name string, want, is int) error {
 }
 
 type PdfContext struct {
-	Key    string
-	Url    string
-	Buffer bytes.Buffer
+	Key      string
+	Url      string
+	FileByes []byte
 }
 
-func NewPdfContext(url string, pdfb []byte) (pdfc *PdfContext, err error) {
+func BuildPdf(url string, pdfb []byte) (pdfc *PdfContext, err error) {
 	var bf bytes.Buffer
 	var size int
 	var bytesZlib []byte
@@ -157,7 +157,7 @@ func NewPdfContext(url string, pdfb []byte) (pdfc *PdfContext, err error) {
 		return nil, err
 	}
 
-	pdfc.Buffer = bf
+	pdfc.FileByes = bf.Bytes()
 	return pdfc, nil
 
 }

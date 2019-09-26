@@ -24,8 +24,8 @@ type Sensor struct {
 	mu     sync.Mutex
 }
 
-func NewSensor(name string, teamid int64) *Sensor {
-	return &Sensor{Name: name, TeamID: teamid, ApiKey: GenerateSecureKey()}
+func NewSensor(name, note string, teamid int64) *Sensor {
+	return &Sensor{Name: name, Note: note, TeamID: teamid, ApiKey: GenerateSecureKey()}
 }
 
 func GenerateSecureKey() string {

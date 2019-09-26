@@ -7,6 +7,7 @@ import (
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/state"
 	"github.com/kushtaka/kushtakad/tokens/docx"
+	"github.com/kushtaka/kushtakad/tokens/pdf"
 )
 
 func GetTokens(w http.ResponseWriter, r *http.Request) {
@@ -81,6 +82,22 @@ func PostTokens(w http.ResponseWriter, r *http.Request) {
 	switch token.Type {
 	case "link":
 	case "pdf":
+		pdfBytes, err := app.Box.Find("files/template.pdf")
+		if err != nil {
+			app.Fail("Unable to find template pdf.")
+			http.Redirect(w, r, redirUrl, 302)
+			return
+		}
+
+		pdfCtx, err := pdf.BuildPdf(app.Settings.URI, pdfBytes)
+		if err != nil {
+			app.Fail("Unable to build pdf from template.")
+			http.Redirect(w, r, redirUrl, 302)
+			return
+		}
+
+		token.TokenContext = pdfCtx
+		log.Debug(pdfCtx)
 	case "docx":
 		docxBytes, err := app.Box.Find("files/template.docx")
 		if err != nil {

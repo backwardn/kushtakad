@@ -7,10 +7,13 @@
             </div>
 
             <div class="row">
+
                 <div class="input-field col">
                     <input id="name" type="text" name="name" value="{{ .Forms.Team.Name }}" required class="validate">
-                    <label for="name" data-error="example: devops-nyc-01" data-success="valid">Name</label>
-                    <span class="helper-text" data-error="wrong" data-success="right">The name describing the team that will get alerts (ops, ops-west, ops-east, etc).</span>
+                    <label for="name" data-error="example: devops-nyc-01" data-success="valid">
+                        Name
+                        <a class="vertical-align tooltipped" data-position="bottom" data-tooltip="The name describing the team that will get alerts (ops, ops-west, ops-east, etc)."><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
                 </div>
             </div>
 
@@ -59,3 +62,11 @@
     </div>
 
 </div>
+
+
+
+<script>
+        $(document).ready(function(){
+            $('.tooltipped').tooltip();
+        });
+</script>

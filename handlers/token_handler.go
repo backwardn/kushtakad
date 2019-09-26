@@ -76,29 +76,40 @@ func DownloadDocxToken(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func CreatePdfToken(w http.ResponseWriter, r *http.Request) {
+func DownloadPdfToken(w http.ResponseWriter, r *http.Request) {
+	redirUrl := "/kushtaka/tokens/page/1/limit/100"
 	app, err := state.Restore(r)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
-	PdfFile := "files/template.pdf"
-	pdfb, err := app.Box.Find(PdfFile)
+	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
 	if err != nil {
-		log.Error(err)
+		app.Fail(err.Error())
+		http.Redirect(w, r, redirUrl, 302)
 		return
 	}
 
-	//t := &models.Token{}
-	pdfc, err := pdf.NewPdfContext(app.Settings.URI, pdfb)
-	if err != nil {
-		log.Error(err)
+	token := &models.Token{TokenContext: &pdf.PdfContext{}}
+	app.DB.One("ID", id, token)
+	if token.ID == 0 || len(token.Name) == 0 {
+		app.Fail("Token not found.")
+		http.Redirect(w, r, redirUrl, 302)
+		return
+	}
+
+	pdfc, ok := token.TokenContext.(*pdf.PdfContext)
+	if !ok {
+		app.Fail("Unable to convert pdf.")
+		http.Redirect(w, r, redirUrl, 302)
 		return
 	}
 
 	w.Header().Set("Content-Disposition", "attachment; filename=kushtaka.pdf")
-	http.ServeContent(w, r, "kushtaka.pdf", time.Now(), bytes.NewReader(pdfc.Buffer.Bytes()))
+	http.ServeContent(w, r, "kushtaka.pdf", time.Now(), bytes.NewReader(pdfc.FileByes))
+	return
 }
 
 func GetToken(w http.ResponseWriter, r *http.Request) {

@@ -7,24 +7,40 @@
             </div>
 
             <div class="row">
+                
                 <div class="input-field col">
                     <input id="name" type="text" name="name" value="{{ .Forms.Token.Name }}" required class="validate">
-                    <label for="name" data-error="example: devops-nyc-01" data-success="valid">Name</label>
-                    <span class="helper-text" data-error="wrong" data-success="right">This name is just used to identify the sensor and can be random, a hostname, ip address, etc.</span>
+                    <label for="name">
+                        Name 
+                        <a class="tooltipped" data-position="bottom" data-tooltip="This name is just used to identify the sensor and can be random, a hostname, ip address, etc."><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
+                    <span class="helper-text" data-error="incorrect" data-success="correct"></span>
+                </div>
 
+                <div class="input-field col">
+                    <input id="note" type="text" name="note" value="{{ .Forms.Token.Note }}" required class="validate">
+                    <label for="note">
+                       Note 
+                       <a class="tooltipped" data-position="bottom" data-tooltip="You can write a long note here to keep track of the plans or state of this sensor."><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
+                    <span class="helper-text" data-error="incorrect" data-success="correct"></span>
                 </div>
 
                 <div class="input-field col">
                     <select name="teamId">
-                        <option value="" disabled selected>Team</option>
+                        <option value="" disabled selected>---</option>
                         {{ if len .Teams }}
                             {{ range $key, $v := .Teams }}
                                 <option value="{{ $v.ID }}">{{ $v.Name }}</option>
                             {{ end }}
                         {{ end }}
                     </select>
-                    <span class="helper-text" data-error="wrong" data-success="right">This is the team that will get the email alerts when a sensor detects an anomoly.</span>
+                    <label for="team">
+                        Team
+                        <a class="tooltipped" data-position="bottom" data-tooltip="The name of the team that will recieve the email alerts."><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
                 </div>
+
             </div>
 
 
@@ -46,6 +62,7 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Note</th>
                                 <th>Settings</th>
                                 <th>Delete</th>
                             </tr>
@@ -55,6 +72,7 @@
                         {{ range $key, $sensor := .Sensors }}
                                 <tr>
                                     <td>{{ $sensor.Name }}</td>
+                                    <td>{{ $sensor.Note }}</td>
                                     <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/sensor/{{ $sensor.ID }}"><i class="material-icons">settings</i></a></td>
                                     <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteServiceModal({ serviceID: {{ $sensor.ID }} } )"><i class="material-icons">delete_sweep</i></a></td>
                                 </tr>
@@ -76,5 +94,6 @@
 
     $(document).ready(function(){
         $('select').formSelect();
+        $('.tooltipped').tooltip();
     });
 </script>

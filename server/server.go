@@ -72,10 +72,6 @@ func RunServer(r chan bool, l chan models.LE) *http.Server {
 	rtr.HandleFunc("/t/{t}/i.png", handlers.GetLinkEvent).Methods("GET")
 	rtr.HandleFunc("/p/{t}/i.png", handlers.GetPdfEvent).Methods("GET")
 	rtr.HandleFunc("/d/{t}/i.png", handlers.GetDocxEvent).Methods("GET")
-
-	rtr.HandleFunc("/create-pdf-token", handlers.CreatePdfToken).Methods("GET")
-	//rtr.HandleFunc("/create-docx-token", handlers.CreateDocxToken).Methods("GET")
-
 	rtr.HandleFunc("/", handlers.IndexCheckr).Methods("GET")
 	rtr.NotFoundHandler = &NotFound{}
 
@@ -114,6 +110,7 @@ func RunServer(r chan bool, l chan models.LE) *http.Server {
 	kushtaka.HandleFunc("/tokens", handlers.PostTokens).Methods("POST")
 
 	kushtaka.HandleFunc("/download/token/docx/{id}", handlers.DownloadDocxToken).Methods("GET")
+	kushtaka.HandleFunc("/download/token/pdf/{id}", handlers.DownloadPdfToken).Methods("GET")
 	// token
 	kushtaka.HandleFunc("/token/{id}", handlers.GetToken).Methods("GET")
 	kushtaka.HandleFunc("/token", handlers.PostToken).Methods("POST")
