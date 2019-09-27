@@ -33,16 +33,15 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := app.DB.Begin(true)
 	if err != nil {
-		tx.Rollback()
 		resp = NewResponse("error", "Tx can't begin", err)
 		w.Write(resp.JSON())
 		return
 	}
+	defer tx.Rollback()
 
 	var scfg models.ServiceCfg
 	err = tx.One("ServiceID", scfgFinder.ServiceID, &scfg)
 	if err != nil {
-		tx.Rollback()
 		resp := NewResponse("error", "Scfg does not exist?", err)
 		w.Write(resp.JSON())
 		return
@@ -52,7 +51,6 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 	err = tx.One("ID", scfg.SensorID, &sensor)
 	if err != nil {
 		log.Error(err)
-		tx.Rollback()
 		resp := NewResponse("error", "Sensor id not found, does sensor exist?", err)
 		w.Write(resp.JSON())
 		return
@@ -66,7 +64,6 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 
 	err = tx.Update(&sensor)
 	if err != nil {
-		tx.Rollback()
 		resp := NewResponse("error", "Unable to update sensor", err)
 		w.Write(resp.JSON())
 		return
@@ -77,7 +74,6 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 		var tel telnet.TelnetService
 		err := tx.One("ID", scfg.ServiceID, &tel)
 		if err != nil {
-			tx.Rollback()
 			resp := NewResponse("error", "Unable to find telnet service", err)
 			w.Write(resp.JSON())
 			return
@@ -85,7 +81,6 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 
 		err = tx.DeleteStruct(&tel)
 		if err != nil {
-			tx.Rollback()
 			resp := NewResponse("error", "Unable to delete telnet struct", err)
 			w.Write(resp.JSON())
 			return
@@ -93,7 +88,6 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 
 		err = tx.DeleteStruct(&scfg)
 		if err != nil {
-			tx.Rollback()
 			resp := NewResponse("error", "Unable to delete ServiceCfg struct", err)
 			w.Write(resp.JSON())
 			return
@@ -102,7 +96,6 @@ func DeleteService(w http.ResponseWriter, r *http.Request) {
 
 	err = tx.Commit()
 	if err != nil {
-		tx.Rollback()
 		resp := NewResponse("error", "Unable to commit tx", err)
 		w.Write(resp.JSON())
 		return
@@ -133,16 +126,15 @@ func PostService(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := app.DB.Begin(true)
 	if err != nil {
-		tx.Rollback()
 		resp = NewResponse("error", "Tx can't begin", err)
 		w.Write(resp.JSON())
 		return
 	}
+	defer tx.Rollback()
 
 	var sensor models.Sensor
 	tx.One("ID", sensorId, &sensor)
 	if sensor.ID == 0 {
-		tx.Rollback()
 		resp := NewResponse("error", "Sensor id not found, does sensor exist?", err)
 		w.Write(resp.JSON())
 		return
@@ -150,7 +142,6 @@ func PostService(w http.ResponseWriter, r *http.Request) {
 
 	cfg, err := CreateService(serviceType, sensor, r, tx)
 	if err != nil {
-		tx.Rollback()
 		resp = NewResponse("error", "Unable to create service", err)
 		w.Write(resp.JSON())
 		return
@@ -158,7 +149,6 @@ func PostService(w http.ResponseWriter, r *http.Request) {
 
 	err = tx.Save(&cfg)
 	if err != nil {
-		tx.Rollback()
 		resp = NewResponse("error", "Unable to save service configuration", err)
 		w.Write(resp.JSON())
 		return
@@ -167,7 +157,6 @@ func PostService(w http.ResponseWriter, r *http.Request) {
 	sensor.Cfgs = append(sensor.Cfgs, cfg)
 	err = tx.Update(&sensor)
 	if err != nil {
-		tx.Rollback()
 		resp = NewResponse("error", "Unable to update sensor", err)
 		w.Write(resp.JSON())
 		return
@@ -175,7 +164,6 @@ func PostService(w http.ResponseWriter, r *http.Request) {
 
 	err = tx.Commit()
 	if err != nil {
-		tx.Rollback()
 		resp := NewResponse("error", "unable to commit tx", err)
 		w.Write(resp.JSON())
 		return
@@ -204,15 +192,15 @@ func CreateService(stype string, sensor models.Sensor, r *http.Request, tx storm
 			return cfg, fmt.Errorf("Port must be specified")
 		}
 
-		err = tx.Save(&tel)
-		if err != nil {
-			return cfg, fmt.Errorf("Unable to save telnet service : %w", err)
-		}
-
 		for _, v := range sensor.Cfgs {
 			if v.Port == tel.Port {
 				return cfg, fmt.Errorf("Port is already assigned to another service : %w", err)
 			}
+		}
+
+		err = tx.Save(&tel)
+		if err != nil {
+			return cfg, fmt.Errorf("Unable to save telnet service : %w", err)
 		}
 
 		cfg.ServiceID = tel.ID
