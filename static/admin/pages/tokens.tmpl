@@ -8,7 +8,8 @@
         </div>
 
         <div class="row">
-            <div class="input-field col">
+
+            <div class="input-field col s12">
                 <input id="name" type="text" name="name" value="{{ .Forms.Token.Name }}" required class="validate">
                 <label class="vertical-align" for="name" data-error="example: devops-nyc-01" data-success="valid">
                     Name
@@ -16,7 +17,7 @@
                 </label>
             </div>
 
-            <div class="input-field col">
+            <div class="input-field col s12">
                 <textarea id="note" class="materialize-textarea" type="text" name="note" value="{{ .Forms.Token.Note }}" required class="validate"></textarea>
                 <label for="note">
                     Note
@@ -25,7 +26,7 @@
             </div>
 
 
-            <div class="input-field col">
+            <div class="input-field col s12">
                 <select name="teamId">
                     <option value="" disabled selected>---</option>
                     {{ if len .Teams }}
@@ -40,7 +41,7 @@
                 </label>
             </div>
 
-            <div class="input-field col">
+            <div class="input-field col s12">
                 <select name="type">
                     <option value="" disabled selected>---</option>
                     <option value="link">Link</option>
@@ -79,12 +80,12 @@
                     <tbody>
                     {{ if len .Tokens}}
                     {{ range $key, $v := .Tokens }}
-                            <tr>
+                            <tr id="token-id-{{ $v.ID }}">
                                 <td>{{ $v.Name }}</td>
                                 <td>{{ $v.Type }}</td>
                                 <td>{{ $v.Note }}</td>
                                 <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/download/token/{{ $v.Type }}/{{ $v.ID }}"><i class="material-icons">file_download</i></a></td>
-                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteServiceModal({ tokenID: {{ $v.ID }} type: {{ $v.Type }} } )"><i class="material-icons">delete_sweep</i></a></td>
+                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteTokenModal({ ID: {{ $v.ID }}, type: {{ $v.Type }} } )"><i class="material-icons">delete_sweep</i></a></td>
                             </tr>
                     {{ end }}
                     {{ end }}
@@ -95,7 +96,86 @@
 
 </div>
 
+
+<!-- Delete Modal Structures -->
+<div id="delete-token-modal" class="modal-gap modal">
+    <div class="modal-content">
+        <div class="row">
+            <h5 class="col">Delete the Token?</h5>
+        </div>
+
+        <div class="row">
+            <div class="input-field col">
+                <button id="delete-token-modal-no"  class="waves-effect waves-light teal lighten-1 btn">Cancel</button>
+                <button id="delete-token-modal-yes" class="waves-effect waves-light red lighten-1 btn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
+
+
+    var uri = "{{ .URI }}/kushtaka/token";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.modal');
+        var instances = M.Modal.init(elems, {});
+    });
+
+    function respDeleteToken(modalType, resp) {
+        var modalElement = document.getElementById(modalType);
+        var instance = M.Modal.getInstance(modalElement);
+
+        if (resp.Status === "success") {
+            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            instance.close();
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
+        }
+    }
+
+    function deleteData(data, url) {
+        fetch(url, {
+        method: 'DELETE', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{
+            'Content-Type': 'application/json'
+        }
+        }).then(res => res.json())
+        .then(response => respDeleteToken("delete-token-modal", response))
+        .catch(error => errc(error));
+    }
+
+    function cancelDelete(id) {
+        var modalElement = document.getElementById("delete-token-modal");
+        var instance = M.Modal.getInstance(modalElement);
+        instance.close();
+    }
+
+    function deleteToken(obj) {
+        deleteData(obj, uri);
+        var id = "token-id-" + obj.ID.toString();
+        document.getElementById(id).remove();
+    }
+
+    function deleteTokenModal(id) {
+        var modalElement = document.getElementById("delete-token-modal");
+        var instance = M.Modal.getInstance(modalElement);
+
+        document.getElementById("delete-token-modal-no").onclick = function() {cancelDelete(id)};
+        document.getElementById("delete-token-modal-yes").onclick = function() { deleteToken(id)};
+
+        instance.open();
+
+    }
+
+    function errc(err) {
+        M.toast({html: err, classes: 'green lighten-1'})
+        console.error('Error:', err);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         var elems = document.querySelectorAll('select');
         var instances = M.FormSelect.init(elems, options = {classes:"select-tealo", dropdownOptions: {}});

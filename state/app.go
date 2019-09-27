@@ -214,3 +214,14 @@ func (app *App) Success(msg string) {
 	app.Session.AddFlash(msg, FlashSuccess)
 	app.Session.Save(app.Request, app.Response)
 }
+
+func (app *App) EndSession() error {
+	app.User = &models.User{}
+	app.View = &View{}
+	err := app.Session.Save(app.Request, app.Response)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

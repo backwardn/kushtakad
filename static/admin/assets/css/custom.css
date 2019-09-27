@@ -312,3 +312,8 @@ input:not([type]):focus:not([readonly]) + label, input[type="text"]:focus:not([r
   top: -26px;
   font-size: 1rem !important;
 }
+
+
+.select-wrapper input.select-dropdown {
+  font-size: 14px !important;
+}

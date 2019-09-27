@@ -11,7 +11,11 @@
             <div class="row">
                 <div class="input-field col s2">
                     <input id="telnet-port" type="text" name="telnet-port" value="" required class="validate">
-                    <label for="telnet-port" data-error="example: telnet, ssh, ftp" data-success="valid">Port</label>
+
+                    <label for="team">
+                        Port 
+                        <a class="tooltipped" data-position="bottom" data-tooltip="What port should this emulated service bind on?"><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
                 </div>
             </div>
     
@@ -21,7 +25,11 @@
                         <option value="" disabled selected>---</option>
                         <option value="basic">basic</option>
                     </select>
-                    <label for="emulate" data-error="example: Basic, Complex" data-success="valid">What kind of telnet server should we emulate?</label>
+
+                    <label for="team">
+                        Type
+                        <a class="tooltipped" data-position="bottom" data-tooltip="What kind of telnet server should we emulate?"><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
                 </div>
             </div>
 

@@ -7,6 +7,21 @@ import (
 	"github.com/kushtaka/kushtakad/state"
 )
 
+func PostLogout(w http.ResponseWriter, r *http.Request) {
+	app, err := state.Restore(r)
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = app.EndSession()
+	if err != nil {
+		log.Debug(err)
+		w.Write([]byte("{\"msg\":\"fail\"}"))
+	}
+
+	w.Write([]byte("{\"msg\":\"success\"}"))
+	return
+}
 func GetLogin(w http.ResponseWriter, r *http.Request) {
 	app, err := state.Restore(r)
 	if err != nil {

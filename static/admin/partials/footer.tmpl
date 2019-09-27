@@ -5,6 +5,21 @@
       $(".sidenav").sidenav();
       $(".dropdown-trigger").dropdown({coverTrigger: false, alignment: 'bottom', outDuration: 0, inDuration: 0});
       $('input#email, input#password').characterCounter();
+
+      $(".logout").on("click", function (e) {
+        e.preventDefault();
+
+        $.ajax({
+          url: '/logout',
+          type: 'Post',
+          success: function (data) {
+            var obj = JSON.parse(data);
+            if (obj.msg == "success") {
+              window.location.replace("/login");
+            }
+          }
+        });
+        });
     });
 </script>
 {{ end }}

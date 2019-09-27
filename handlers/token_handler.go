@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -208,6 +210,54 @@ func PutToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteToken(w http.ResponseWriter, r *http.Request) {
-	log.Error("DeleteToken()")
+	resp := &Response{}
+	w.Header().Set("Content-Type", "application/json")
+	app, err := state.Restore(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var token models.Token
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&token)
+	if err != nil {
+		resp = NewResponse("error", "Unable to decode response body", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	tx, err := app.DB.Begin(true)
+	if err != nil {
+		resp = NewResponse("error", "Tx can't begin", err)
+		w.Write(resp.JSON())
+		return
+	}
+	defer tx.Rollback()
+
+	err = tx.One("ID", token.ID, &token)
+	if err != nil {
+		log.Error(err)
+		resp := NewResponse("error", "Token id not found, does token exist?", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.DeleteStruct(&token)
+	if err != nil {
+		resp := NewResponse("error", "Unable to delete token", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		resp := NewResponse("error", "Unable to commit tx", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	msg := fmt.Sprintf("Successfully deleted the [%s] which was a [%s] token", token.Name, token.Type)
+	resp = NewResponse("success", msg, err)
+	w.Write(resp.JSON())
 	return
 }

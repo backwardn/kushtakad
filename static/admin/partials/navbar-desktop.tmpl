@@ -5,7 +5,7 @@
         <li><a class="{{ .Links.Https }}" href="/kushtaka/https">Https</a></li>
         <li><a class="{{ .Links.Smtp }}"  href="/kushtaka/smtp">Smtp</a></li>
         <li class="divider" tabindex="-1"></li>
-        <li><a href="/kushtaka/logout">Logout</a></li>
+        <li><a class="logout" href="/kushtaka/logout">Logout</a></li>
     </ul>
     {{ if .State.AdminIsSetup }}
         {{ if .State.IsAuthd }}
