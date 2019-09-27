@@ -57,8 +57,7 @@ func Telnet() *TelnetService {
 }
 
 type TelnetService struct {
-	ID       int64  `storm:"id,increment,index" json:"id"`
-	SensorID int64  `storm:"index" json:"sensorId"`
+	SensorID int64  `json:"sensorId"`
 	Port     int    `json:"port"`
 	Prompt   string `json:"prompt"`
 	Emulate  string `json:"emulate"`
@@ -85,7 +84,6 @@ func (s TelnetService) Handle(ctx context.Context, conn net.Conn) error {
 	if err != nil {
 		log.Debug(err)
 	}
-
 
 	term := NewTerminal(conn, s.Prompt)
 

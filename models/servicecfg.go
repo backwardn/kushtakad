@@ -6,13 +6,11 @@ import (
 )
 
 type ServiceCfg struct {
-	ID        int64  `storm:"id,increment,index" json:"ID"`
-	SensorID  int64  `storm:"index" json:"sensorId"`
-	ServiceID int64  `storm:"index" json:"serviceId"`
-	Port      int    `storm:"index" json:"port"`
-	Type      string `storm:"index" json:"type"`
+	SensorID int64  `storm:"index" json:"sensorId"`
+	Port     int    `storm:"index" json:"port"`
+	Type     string `storm:"index" json:"type"`
 
-	Service *Service
+	Service interface{}
 }
 
 type Service interface {

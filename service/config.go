@@ -85,6 +85,7 @@ func LastHeartbeat() (time.Time, error) {
 }
 
 func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
+	log.Debug("Begin")
 	url := host + "/api/v1/config.json"
 
 	spaceClient := http.Client{
@@ -114,7 +115,7 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 		return nil, err
 	}
 
-	log.Info(tmpMap)
+	log.Info("This is a tmpMap", tmpMap)
 
 	var svm []*ServiceMap
 	for _, v := range tmpMap {
@@ -136,7 +137,6 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 			sm.Service = tel
 			svm = append(svm, sm)
 			log.Infof("Did it decode? %v", tel)
-
 		}
 	}
 

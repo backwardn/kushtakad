@@ -4,14 +4,10 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/asdine/storm"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/kushtaka/kushtakad/service"
-	"github.com/kushtaka/kushtakad/service/telnet"
 )
 
 type Sensor struct {
@@ -56,23 +52,3 @@ func (s *Sensor) ValidateCreate() error {
 	}.Filter()
 }
 
-func (s *Sensor) ServicesConfig(db *storm.DB) []*service.ServiceMap {
-	var svm []*service.ServiceMap
-	for _, v := range s.Cfgs {
-		switch v.Type {
-		case "telnet":
-			var tel telnet.TelnetService
-			db.One("ID", v.ServiceID, &tel)
-			sm := &service.ServiceMap{
-				Service:    tel,
-				SensorName: s.Name,
-				Type:       tel.Type,
-				Port:       strconv.Itoa(tel.Port),
-			}
-
-			svm = append(svm, sm)
-		}
-	}
-
-	return svm
-}

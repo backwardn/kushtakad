@@ -96,7 +96,7 @@
                     <tbody id="services-tbody">
                     {{ if len .SensorServices }}
                     {{ range $key, $service := .Sensor.Cfgs }}
-                            <tr id="service-id-{{ $service.ServiceID}}">
+                            <tr id="service-id-{{ $service.Port }}">
                                 <td>{{ $service.Port }}</td>
                                 <td>{{ $service.Type }}</td>
                                 <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="updateServiceModal( {{ $service }} )"><i class="material-icons">input</i></a></td>

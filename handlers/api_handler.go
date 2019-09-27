@@ -4,10 +4,16 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/asdine/storm"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/kushtaka/kushtakad/events"
 	"github.com/kushtaka/kushtakad/models"
+	"github.com/kushtaka/kushtakad/service"
+	"github.com/kushtaka/kushtakad/service/telnet"
 	"github.com/kushtaka/kushtakad/state"
 )
 
@@ -30,14 +36,45 @@ func GetConfig(w http.ResponseWriter, r *http.Request) {
 	// TODO: add constant time compare
 	// update: not needed, handled in middleware
 	if sensor.ApiKey != apiKey {
+		log.Debug("Api key does NOT match")
 		app.Render.JSON(w, 404, err)
 		return
 	}
 
-	svm := sensor.ServicesConfig(app.DB)
+	svm, err := ServicesConfig(&sensor, app.DB)
+	if err != nil {
+		log.Debug(err)
+		app.Render.JSON(w, 200, err)
+		return
+	}
 
 	app.Render.JSON(w, http.StatusOK, svm)
 	return
+}
+
+func ServicesConfig(s *models.Sensor, db *storm.DB) ([]*service.ServiceMap, error) {
+	var svm []*service.ServiceMap
+	for _, v := range s.Cfgs {
+		switch v.Type {
+		case "telnet":
+			var tel telnet.TelnetService
+			err := mapstructure.Decode(v.Service, &tel)
+			if err != nil {
+				return nil, err
+			}
+
+			sm := &service.ServiceMap{
+				Service:    tel,
+				SensorName: s.Name,
+				Type:       v.Type,
+				Port:       strconv.Itoa(v.Port),
+			}
+
+			svm = append(svm, sm)
+		}
+	}
+
+	return svm, nil
 }
 
 func PostEvent(w http.ResponseWriter, r *http.Request) {
