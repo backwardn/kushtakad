@@ -25,7 +25,7 @@ type Settings struct {
 func (s *Settings) BuildURI() string {
 	if os.Getenv("KUSHTAKA_ENV") == "development" {
 		s.URI = fmt.Sprintf("%s://%s%s", "http", "localhost", ":3000")
-	} else {
+	} else if len(s.URI) == 0 {
 		s.URI = fmt.Sprintf("%s://%s%s", s.Scheme, s.Host, s.Port)
 	}
 	return s.URI
@@ -59,7 +59,6 @@ func InitSettings() (*Settings, error) {
 	if s.Scheme != "http" || s.Scheme != "https" {
 		s.Scheme = "http"
 	}
-
 	s.BuildURI()
 
 	b, err := json.Marshal(s)
