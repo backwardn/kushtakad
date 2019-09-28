@@ -4,6 +4,7 @@
 .DS_Store
 auth.json
 sensor.json
+server.json
 services.json
 main
 gin-bin

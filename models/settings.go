@@ -1,7 +1,9 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 
@@ -70,7 +72,13 @@ func InitSettings(db *storm.DB) (Settings, error) {
 
 	s.URI = BuildURI(db)
 	log.Debug("InitSettings")
-	err := db.Save(&s)
+
+	b, err := json.Marshal(s)
+	if err != nil {
+		return s, err
+	}
+
+	err = ioutil.WriteFile("server.json", b, 0644)
 	if err != nil {
 		return s, err
 	}
@@ -79,12 +87,23 @@ func InitSettings(db *storm.DB) (Settings, error) {
 }
 
 func FindSettings(db *storm.DB) (*Settings, error) {
-	s := &Settings{}
-	err := db.One("ID", SettingsID, s)
+	var settings *Settings
+	jsonFile, err := os.Open("server.json")
 	if err != nil {
-		log.Debugf("FindSettings error : %v", err)
+		return nil, err
 	}
-	return s, err
+
+	log.Debug("Successfully Opened server.json")
+	defer jsonFile.Close()
+
+	b, _ := ioutil.ReadAll(jsonFile)
+
+	err = json.Unmarshal(b, &settings)
+	if err != nil {
+		return nil, err
+	}
+
+	return settings, nil
 }
 
 // Get preferred outbound ip of this machine
