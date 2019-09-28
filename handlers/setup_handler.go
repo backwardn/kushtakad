@@ -10,7 +10,7 @@ import (
 func GetSetup(w http.ResponseWriter, r *http.Request) {
 	app, err := state.Restore(r)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Unable to restore app %w", err)
 	}
 
 	if app.View.State.AdminIsSetup {

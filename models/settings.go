@@ -25,7 +25,7 @@ func BuildURI(db *storm.DB) string {
 	var scheme, host string
 	st, err := FindSettings(db)
 	if err != nil {
-		log.Error("BuildURI failed %s", err)
+		log.Errorf("BuildURI failed %w", err)
 	}
 
 	if os.Getenv("KUSHTAKA_ENV") == "development" {
@@ -35,7 +35,9 @@ func BuildURI(db *storm.DB) string {
 		scheme = st.Scheme
 		host = st.Host
 	}
-	return fmt.Sprintf("%s://%s", scheme, host)
+	uri := fmt.Sprintf("%s://%s", scheme, host)
+	log.Debug(uri)
+	return uri
 }
 
 func InitSettings(db *storm.DB) (Settings, error) {
@@ -67,7 +69,6 @@ func InitSettings(db *storm.DB) (Settings, error) {
 	}
 
 	s.URI = BuildURI(db)
-
 	log.Debug("InitSettings")
 	err := db.Save(&s)
 	if err != nil {
