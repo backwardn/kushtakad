@@ -147,12 +147,12 @@
     }
 
     function postReboot() {
+        url = uri + "/reboot";
         var data = getForm();
         M.toast({html: "Trying to send...", classes: 'orange lighten-1'})
-
-        console.log(uri);
+        console.log(url);
         console.log(data);
-        postData(data, uri);
+        postData(data, url);
     }
 
 

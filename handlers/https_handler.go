@@ -102,6 +102,35 @@ func PostTestFQDN(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
+	app, err := state.Restore(r)
+	if err != nil {
+		resp := NewResponse("failed", "failed to restore", err)
+		app.Render.JSON(w, 200, resp)
+		return
+	}
+
+	var domain Domain
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&domain)
+	if err != nil {
+		resp := NewResponse("failed", "FQDN not provided?", err)
+		app.Render.JSON(w, 200, resp)
+		return
+	}
+
+	var resps []*Response
+	le := models.NewStageLE(app.User.Email, []string{domain.FQDN})
+	app.LE <- le
+	resp := NewResponse("success", "Outbound IP address matches", nil)
+	resp.Type = "ip-match-answer"
+	resp.Obj = le
+	resps = append(resps, resp)
+	app.Render.JSON(w, 200, resps)
+	log.Debug("End")
+	return
+}
+
 /*
 app.Reboot <- true
 var wg sync.WaitGroup
