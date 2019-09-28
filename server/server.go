@@ -29,7 +29,7 @@ var (
 	fss      *sessions.FilesystemStore
 	db       *storm.DB
 	box      *packr.Box
-	settings models.Settings
+	settings *models.Settings
 	reboot   chan bool
 	le       chan models.LE
 	err      error
@@ -57,7 +57,7 @@ func RunServer(r chan bool, l chan models.LE) *http.Server {
 	}
 
 	// must setup the basic hashes and settings for application to function
-	settings, err = models.InitSettings(db)
+	settings, err = models.InitSettings()
 	if err != nil {
 		log.Fatalf("Failed to init settings : %s", err)
 	}
@@ -172,13 +172,13 @@ func RunServer(r chan bool, l chan models.LE) *http.Server {
 	srv := setup(settings, n)
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatalf("The http servier died :%s", err)
+			log.Fatalf("The http server died :%s", err)
 		}
 	}()
 	return srv
 }
 
-func setup(settings models.Settings, n *negroni.Negroni) *http.Server {
+func setup(settings *models.Settings, n *negroni.Negroni) *http.Server {
 	env := os.Getenv("KUSHTAKA_ENV")
 	go func() {
 		time.Sleep(1 * time.Second)
@@ -193,7 +193,7 @@ func setup(settings models.Settings, n *negroni.Negroni) *http.Server {
 
 	log.Debugf("settings.Host %s", settings.Host)
 	log.Debugf("settings.URI %s", settings.URI)
-	return &http.Server{Addr: settings.Host, Handler: n}
+	return &http.Server{Addr: settings.Port, Handler: n}
 }
 
 // forceSetup is a middleware function that makes sure
@@ -267,6 +267,7 @@ func before(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		Box:             box,
 		Reboot:          reboot,
 		LE:              le,
+		Settings:        settings,
 	}
 	app, err := state.NewApp(cfg)
 	if err != nil {

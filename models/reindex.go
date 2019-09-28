@@ -75,16 +75,5 @@ func Reindex(db *storm.DB) error {
 		return err
 	}
 
-	// Settings
-	err = db.Init(&Settings{})
-	if err != nil {
-		return err
-	}
-
-	err = db.ReIndex(&Settings{})
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

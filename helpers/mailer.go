@@ -124,11 +124,14 @@ func (te *TestEvent) SendTestEvent() error {
 func (m *Mailer) SendSensorEvent(eventid, furl, hashid, state, emailtext string, tt time.Time) error {
 
 	fname := "event_sensor.tmpl"
-	uri := models.BuildURI(m.DB)
+	s, err := models.FindSettings()
+	if err != nil {
+		return err
+	}
 
 	m.Subject = fmt.Sprintf("%s : %s", furl, eventid)
 	m.Text = fmt.Sprintf("Event: %s <br>\n\nState: %s<br>\n\n", furl, state)
-	m.EventLink = uri + "/kushtaka/%s"
+	m.EventLink = s.URI + "/kushtaka/%s"
 	m.TemplateName = "EventSensor"
 	m.TemplateFile = fname
 	m.EventLink = fmt.Sprintf(m.EventLink, m.EventID)

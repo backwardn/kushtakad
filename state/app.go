@@ -89,6 +89,7 @@ type Config struct {
 	Request         *http.Request
 	DB              *storm.DB
 	Session         *sessions.Session
+	Settings        *models.Settings
 	FilesystemStore *sessions.FilesystemStore
 	Box             *packr.Box
 	Reboot          chan bool
@@ -100,10 +101,6 @@ type Config struct {
 func NewApp(cfg *Config) (*App, error) {
 
 	ren := NewRender("admin/layouts/main", cfg.Box)
-	settings, err := models.FindSettings(cfg.DB)
-	if err != nil {
-		return nil, err
-	}
 
 	// TODO this is for websockets? I have no idea what I was thinking but a new instance doesn't seem right
 	// this should be move to server?
@@ -118,12 +115,12 @@ func NewApp(cfg *Config) (*App, error) {
 		Session:   cfg.Session,
 		FileStore: cfg.FilesystemStore,
 		Box:       cfg.Box,
-		Render:    ren,
-		Settings:  settings,
-		View:      NewView(),
-		User:      &models.User{},
+		Settings:  cfg.Settings,
 		Reboot:    cfg.Reboot,
 		LE:        cfg.LE,
+		Render:    ren,
+		View:      NewView(),
+		User:      &models.User{},
 	}, nil
 
 }
@@ -168,7 +165,7 @@ func (app *App) RestoreUser() {
 }
 
 func (app *App) RestoreURI() {
-	app.View.URI = models.BuildURI(app.DB)
+	app.View.URI = app.Settings.BuildURI()
 }
 
 func (app *App) RestoreState() {

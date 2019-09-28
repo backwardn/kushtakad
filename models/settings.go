@@ -7,44 +7,32 @@ import (
 	"net"
 	"os"
 
-	"github.com/asdine/storm"
 	"github.com/gorilla/securecookie"
 )
 
 const SettingsID = 1
 
 type Settings struct {
-	ID           int64  `storm:"id,increment" json:"id"`
 	SessionHash  []byte `json:"session_hash"`
 	SessionBlock []byte `json:"session_block"`
 	CsrfHash     []byte `json:"csrf_hash"`
 	Host         string
 	Scheme       string
+	Port         string
 	URI          string
 }
 
-func BuildURI(db *storm.DB) string {
-	var scheme, host string
-	st, err := FindSettings(db)
-	if err != nil {
-		log.Errorf("BuildURI failed %w", err)
-	}
-
+func (s *Settings) BuildURI() string {
 	if os.Getenv("KUSHTAKA_ENV") == "development" {
-		scheme = "http"
-		host = "localhost:3000"
+		s.URI = fmt.Sprintf("%s://%s%s", "http", "localhost", ":3000")
 	} else {
-		scheme = st.Scheme
-		host = st.Host
+		s.URI = fmt.Sprintf("%s://%s%s", s.Scheme, s.Host, s.Port)
 	}
-	uri := fmt.Sprintf("%s://%s", scheme, host)
-	log.Debug(uri)
-	return uri
+	return s.URI
 }
 
-func InitSettings(db *storm.DB) (Settings, error) {
-	var s Settings
-	db.One("ID", SettingsID, &s)
+func InitSettings() (*Settings, error) {
+	s, err := FindSettings()
 	if len(s.SessionHash) != 32 {
 		s.SessionHash = securecookie.GenerateRandomKey(32)
 	}
@@ -59,10 +47,12 @@ func InitSettings(db *storm.DB) (Settings, error) {
 
 	if len(s.Host) == 0 {
 		if os.Getenv("KUSHTAKA_ENV") == "development" {
-			s.Host = "localhost:8080"
+			s.Host = "localhost"
+			s.Port = ":8080"
 		} else {
 			ip := GetOutboundIP().String()
-			s.Host = fmt.Sprintf("%s:8080", ip)
+			s.Host = fmt.Sprintf("%s", ip)
+			s.Port = ":8080"
 		}
 	}
 
@@ -70,8 +60,7 @@ func InitSettings(db *storm.DB) (Settings, error) {
 		s.Scheme = "http"
 	}
 
-	s.URI = BuildURI(db)
-	log.Debug("InitSettings")
+	s.BuildURI()
 
 	b, err := json.Marshal(s)
 	if err != nil {
@@ -86,23 +75,22 @@ func InitSettings(db *storm.DB) (Settings, error) {
 	return s, nil
 }
 
-func FindSettings(db *storm.DB) (*Settings, error) {
-	var settings *Settings
+func FindSettings() (*Settings, error) {
+	log.Debug("start")
+	settings := &Settings{}
 	jsonFile, err := os.Open("server.json")
 	if err != nil {
-		return nil, err
+		return settings, err
 	}
-
-	log.Debug("Successfully Opened server.json")
 	defer jsonFile.Close()
 
 	b, _ := ioutil.ReadAll(jsonFile)
-
 	err = json.Unmarshal(b, &settings)
 	if err != nil {
-		return nil, err
+		return settings, err
 	}
 
+	log.Debug("end")
 	return settings, nil
 }
 
