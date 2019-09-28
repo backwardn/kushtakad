@@ -1,13 +1,13 @@
 {{ define "admin/partials/navbar-mobile" }}
     {{ if .State.AdminIsSetup }}
         {{ if .State.IsAuthd }}
-            <li><a class="active" href="/kushtaka/dashboard">Dashboard</a></li>
-            <li><a href="/kushtaka/teams/page/1/limit/100">Teams</a></li>
-            <li><a href="/kushtaka/hosts">Hosts</a></li>
-            <li><a href="/kushtaka/https">Https</a></li>
-            <li><a href="/kushtaka/smtp">Smtp</a></li>
-            <li><a href="/kushtaka/tokens/page/1/limit/100">Tokens</a></li>
-            <li><a href="/kushtaka/sensors/page/1/limit/100">Sensors</a></li>
+            <li><a class="{{ .Links.Dashboard }}" href="/kushtaka/dashboard">Dashboard</a></li>
+            <li><a class="{{ .Links.Tokens }}" href="/kushtaka/tokens/page/1/limit/100">Tokens</a></li>
+            <li><a class="{{ .Links.Sensors }}" href="/kushtaka/sensors/page/1/limit/100">Sensors</a></li>
+            <li><a class="{{ .Links.Teams }}" href="/kushtaka/teams/page/1/limit/10">Teams</a></li>
+            <li><a class="{{ .Links.Users }}" href="/kushtaka/users/page/1/limit/10">Users</a></li>
+            <li><a class="{{ .Links.Https }}" href="/kushtaka/https">Https</a></li>
+            <li><a class="{{ .Links.Smtp }}"  href="/kushtaka/smtp">Smtp</a></li>
             <li><a class="logout" href="/kushtaka/logout">Logout</a></li>
         {{ else }}
             <li><a href="/login">Login</a></li>
