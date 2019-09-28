@@ -3,6 +3,7 @@
 .env
 .DS_Store
 auth.json
+sensor.json
 services.json
 main
 gin-bin

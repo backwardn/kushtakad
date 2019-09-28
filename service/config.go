@@ -15,7 +15,7 @@ import (
 
 var data map[string]interface{}
 
-const auth = "auth.json"
+const auth = "sensor.json"
 const services = "services.json"
 const lastHeartbeat = "lastheartbeat.txt"
 
@@ -62,11 +62,11 @@ func ValidateAuth(host, apikey string) (*Auth, error) {
 }
 
 func ParseAuth() (*Auth, error) {
-	jsonFile, err := os.Open("auth.json")
+	jsonFile, err := os.Open(auth)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Successfully Opened auth.json")
+	fmt.Println("Successfully Opened sensor.json")
 	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)

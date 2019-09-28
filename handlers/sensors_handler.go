@@ -52,7 +52,7 @@ func PostSensors(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	note := r.FormValue("note")
 	log.Debug(name)
-	tid, err := strconv.ParseInt(r.FormValue("teamId"), 10, 64)
+	tid, err := strconv.ParseInt(r.FormValue("team_id"), 10, 64)
 	if err != nil {
 		app.Fail("Please select a team to notify")
 		http.Redirect(w, r, redir, 302)

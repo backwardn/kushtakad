@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -61,6 +63,54 @@ func UpdateSensor(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteSensor(w http.ResponseWriter, r *http.Request) {
-	log.Error("DeleteSensor()")
+	resp := &Response{}
+	w.Header().Set("Content-Type", "application/json")
+	app, err := state.Restore(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var sensor models.Sensor
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&sensor)
+	if err != nil {
+		resp = NewResponse("error", "Unable to decode response body", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	tx, err := app.DB.Begin(true)
+	if err != nil {
+		resp = NewResponse("error", "Tx can't begin", err)
+		w.Write(resp.JSON())
+		return
+	}
+	defer tx.Rollback()
+
+	err = tx.One("ID", sensor.ID, &sensor)
+	if err != nil {
+		log.Error(err)
+		resp := NewResponse("error", "Sensor id not found, does sensor exist?", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.DeleteStruct(&sensor)
+	if err != nil {
+		resp := NewResponse("error", "Unable to update sensor", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		resp := NewResponse("error", "Unable to commit tx", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	msg := fmt.Sprintf("Successfully deleted the sensor [%s]", sensor.Name)
+	resp = NewResponse("success", msg, err)
+	w.Write(resp.JSON())
 	return
 }

@@ -5,23 +5,31 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"sync"
+	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 type Sensor struct {
-	ID     int64        `storm:"id,increment,index"`
-	TeamID int64        `storm:"id,index"`
-	Name   string       `storm:"index,unique" json:"name"`
-	Note   string       `storm:"index" json:"note"`
-	ApiKey string       `storm:"index,unique" json:"api_key"`
-	Cfgs   []ServiceCfg `storm:"index" json:"service_configs`
-	mu     sync.Mutex
+	ID      int64        `storm:"id,increment,index"`
+	TeamID  int64        `storm:"id,index"`
+	Name    string       `storm:"index,unique" json:"name"`
+	Note    string       `storm:"index" json:"note"`
+	ApiKey  string       `storm:"index,unique" json:"api_key"`
+	Cfgs    []ServiceCfg `storm:"index" json:"service_configs`
+	Updated time.Time    `storm:"index" json:"updated"`
+	Created time.Time    `storm:"index" json:"created"`
 }
 
 func NewSensor(name, note string, teamid int64) *Sensor {
-	return &Sensor{Name: name, Note: note, TeamID: teamid, ApiKey: GenerateSecureKey()}
+	return &Sensor{
+		Name:    name,
+		Note:    note,
+		TeamID:  teamid,
+		ApiKey:  GenerateSecureKey(),
+		Updated: time.Now(),
+		Created: time.Now(),
+	}
 }
 
 func GenerateSecureKey() string {
@@ -51,4 +59,3 @@ func (s *Sensor) ValidateCreate() error {
 			validation.Required.Error("is required")),
 	}.Filter()
 }
-

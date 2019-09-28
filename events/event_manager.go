@@ -23,7 +23,7 @@ type EventManager struct {
 	State              string `json:"type"` // new, ongoing
 	AttackerNetwork    string
 	AttackerIP         string
-	SensorID           int64 `json:"sensorId"`
+	SensorID           int64 `json:"sensor_id"`
 	SensorType         string
 	SensorPort         int
 	EventStart         time.Time   `storm:"index"`

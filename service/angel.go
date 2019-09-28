@@ -45,7 +45,7 @@ func NewServiceAngel(auth *Auth) *ServiceAngel {
 func Run(host, apikey string) {
 	auth, err := ValidateAuth(host, apikey)
 	if err != nil {
-		log.Error("you must pass the cli values -host and -apikey |or| have a valid auth.json file.")
+		log.Error("you must pass the cli values -host and -apikey |or| have a valid sensor.json file.")
 		log.Fatal(err)
 	}
 	log.Info(auth)

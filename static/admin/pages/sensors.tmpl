@@ -27,7 +27,7 @@
                 </div>
 
                 <div class="input-field col s12">
-                    <select name="teamId">
+                    <select name="team_id">
                         <option value="" disabled selected>---</option>
                         {{ if len .Teams }}
                             {{ range $key, $v := .Teams }}
@@ -70,11 +70,11 @@
                         <tbody>
                         {{ if len .Sensors }}
                         {{ range $key, $sensor := .Sensors }}
-                                <tr>
+                                <tr id="sensor-id-{{ $sensor.ID }}">
                                     <td>{{ $sensor.Name }}</td>
                                     <td>{{ $sensor.Note }}</td>
                                     <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/sensor/{{ $sensor.ID }}"><i class="material-icons">settings</i></a></td>
-                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteServiceModal({ serviceID: {{ $sensor.ID }} } )"><i class="material-icons">delete_sweep</i></a></td>
+                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteSensorModal({{ $sensor }} )"><i class="material-icons">delete_sweep</i></a></td>
                                 </tr>
                         {{ end }}
                         {{ end }}
@@ -86,14 +86,73 @@
 
 </div>
 
+
+
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var elems = document.querySelectorAll('select');
-        var instances = M.FormSelect.init(elems, options = {classes:"select-tealo", dropdownOptions: {}});
-    });
+
+
+    var uri = "{{ .URI }}/kushtaka/sensor";
 
     $(document).ready(function(){
         $('select').formSelect();
         $('.tooltipped').tooltip();
+
+        var elems = document.querySelectorAll('.modal');
+        var instances = M.Modal.init(elems, {});
     });
+
+
+    function cancelDelete(id) {
+        var modalElement = document.getElementById("delete-sensor-modal");
+        var instance = M.Modal.getInstance(modalElement);
+        instance.close();
+    }
+
+    function deleteSensor(obj) {
+        deleteData(obj, uri);
+        console.log(obj);
+        var id = "sensor-id-" + obj.ID.toString();
+        console.log(id);
+        document.getElementById(id).remove();
+    }
+
+    function deleteData(data, url) {
+        fetch(url, {
+        method: 'DELETE', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{
+            'Content-Type': 'application/json'
+        }
+        }).then(res => res.json())
+        .then(response => respDeleteSensor("delete-sensor-modal", response))
+        .catch(error => errc(error));
+    }
+
+
+    function respDeleteSensor(modalType, resp) {
+        var modalElement = document.getElementById(modalType);
+        var instance = M.Modal.getInstance(modalElement);
+        if (resp.Status === "success") {
+            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            instance.close();
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
+        }
+    }
+
+
+    function deleteSensorModal(id) {
+        var modalElement = document.getElementById("delete-sensor-modal");
+        var instance = M.Modal.getInstance(modalElement);
+        document.getElementById("delete-sensor-modal-no").onclick = function() {cancelDelete(id)};
+        document.getElementById("delete-sensor-modal-yes").onclick = function() {deleteSensor(id)};
+        instance.open();
+    }
+
+    function errc(err) {
+        M.toast({html: err, classes: 'green lighten-1'})
+        console.error('Error:', err);
+    }
+
 </script>

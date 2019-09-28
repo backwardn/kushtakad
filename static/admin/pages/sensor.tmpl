@@ -96,7 +96,7 @@
                     <tbody id="services-tbody">
                     {{ if len .SensorServices }}
                     {{ range $key, $service := .Sensor.Cfgs }}
-                            <tr id="service-id-{{ $service.Port }}">
+                            <tr id="service-id-{{ $service.UUID }}">
                                 <td>{{ $service.Port }}</td>
                                 <td>{{ $service.Type }}</td>
                                 <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="updateServiceModal( {{ $service }} )"><i class="material-icons">input</i></a></td>
@@ -156,7 +156,9 @@
 
     function deleteService(obj) {
         deleteData(obj, uri);
-        var id = "service-id-" + obj.serviceId.toString();
+        console.log(obj);
+        var id = "service-id-" + obj.uuid.toString();
+        console.log(id);
         document.getElementById(id).remove();
     }
 
@@ -194,7 +196,7 @@
         var el = document.getElementById("telnet-emulate");
         var telem = el.options[el.selectedIndex].value;
         var url = uri + sid + "/type/telnet";
-        var data = {sensorId: sid , type: type, port: telp, emulate: telem};
+        var data = {sensor_id: sid , type: type, port: telp, emulate: telem};
         postData(data, url, type);
     }
 

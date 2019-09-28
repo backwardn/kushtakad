@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -102,6 +104,58 @@ func PutTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteTeam(w http.ResponseWriter, r *http.Request) {
-	log.Error("DeleteTeam()")
+	resp := &Response{}
+	w.Header().Set("Content-Type", "application/json")
+	app, err := state.Restore(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var team models.Team
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&team)
+	if err != nil {
+		log.Error(err)
+		resp = NewResponse("error", "Unable to decode response body", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	tx, err := app.DB.Begin(true)
+	if err != nil {
+		log.Error(err)
+		resp = NewResponse("error", "Tx can't begin", err)
+		w.Write(resp.JSON())
+		return
+	}
+	defer tx.Rollback()
+
+	err = tx.One("ID", team.ID, &team)
+	if err != nil {
+		log.Error(err)
+		resp := NewResponse("error", "Team id not found, does team exist?", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.DeleteStruct(&team)
+	if err != nil {
+		log.Error(err)
+		resp := NewResponse("error", "Unable to update sensor", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Error(err)
+		resp := NewResponse("error", "Unable to commit tx", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	msg := fmt.Sprintf("Successfully deleted the team [%s]", team.Name)
+	resp = NewResponse("success", msg, err)
+	w.Write(resp.JSON())
 	return
 }

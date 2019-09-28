@@ -41,7 +41,7 @@
                     </thead>
                     <tbody>
                     {{ range $key, $v := .Teams }}
-                            <tr>
+                            <tr id="team-id-{{$v.ID}}">
                                 <td>{{ $v.Name }}</td>
                                 <td>
                                     <a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/team/{{ $v.ID }}">
@@ -51,7 +51,7 @@
                                 {{ if eq $v.Name "Default" }}
                                     <td><a class="disabled btn-floating waves-effect waves-light"><i class="material-icons">delete_sweep</i></button></td>
                                 {{ else }}
-                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteServiceModal({ ID: {{ $v.ID }} } )"><i class="material-icons">delete_sweep</i></a></td>
+                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteTeamModal({{ $v }})"><i class="material-icons">delete_sweep</i></a></td>
                                 {{ end }}
                             </tr>
                     {{ end }}
@@ -61,12 +61,86 @@
         {{ end }}
     </div>
 
+    <!-- Delete Modal Structures -->
+    <div id="delete-team-modal" class="modal-gap modal">
+        <div class="modal-content">
+            <div class="row">
+                <h5 class="col">Delete the Team?</h5>
+            </div>
+
+            <div class="row">
+                <div class="input-field col">
+                    <button id="delete-team-modal-no"  class="waves-effect waves-light teal lighten-1 btn">Cancel</button>
+                    <button id="delete-team-modal-yes" class="waves-effect waves-light red lighten-1 btn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 
 
 <script>
-        $(document).ready(function(){
-            $('.tooltipped').tooltip();
-        });
+     var uri = "{{ .URI }}/kushtaka/team";
+
+    $(document).ready(function(){
+        var elems = document.querySelectorAll('.modal');
+        var instances = M.Modal.init(elems, {});
+    });
+
+    function cancelDelete(id) {
+        var modalElement = document.getElementById("delete-team-modal");
+        var instance = M.Modal.getInstance(modalElement);
+        instance.close();
+    }
+
+    function deleteTeam(obj) {
+        deleteData(obj, uri);
+        console.log(obj);
+        var id = "team-id-" + obj.ID.toString();
+        console.log(id);
+        document.getElementById(id).remove();
+    }
+
+    function deleteData(data, url) {
+        fetch(url, {
+        method: 'DELETE', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{
+            'Content-Type': 'application/json'
+        }
+        }).then(res => res.json())
+        .then(response => respDeleteTeam("delete-team-modal", response))
+        .catch(error => errc(error));
+    }
+
+
+    function respDeleteTeam(modalType, resp) {
+        var modalElement = document.getElementById(modalType);
+        var instance = M.Modal.getInstance(modalElement);
+        if (resp.Status === "success") {
+            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            instance.close();
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
+        }
+    }
+
+
+    function deleteTeamModal(id) {
+        var modalElement = document.getElementById("delete-team-modal");
+        var instance = M.Modal.getInstance(modalElement);
+
+        document.getElementById("delete-team-modal-no").onclick = function() {cancelDelete(id)};
+        document.getElementById("delete-team-modal-yes").onclick = function() {deleteTeam(id)};
+
+        instance.open();
+
+    }
+
+    function errc(err) {
+        M.toast({html: err, classes: 'green lighten-1'})
+        console.error('Error:', err);
+    }
 </script>
