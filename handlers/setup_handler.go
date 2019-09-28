@@ -19,11 +19,13 @@ func GetSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var users models.User
-	err = app.DB.One("ID", 1, &users)
-	if err != nil {
-		log.Error(err)
-	}
+	/*
+		var users models.User
+		err = app.DB.One("ID", 1, &users)
+		if err != nil {
+			log.Error(err)
+		}
+	*/
 
 	/*
 		if r.URL.Path == "/setup" && len(users) > 0 {
