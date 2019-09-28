@@ -16,10 +16,10 @@ type Settings struct {
 	SessionHash  []byte `json:"session_hash"`
 	SessionBlock []byte `json:"session_block"`
 	CsrfHash     []byte `json:"csrf_hash"`
-	Host         string
-	Scheme       string
-	Port         string
-	URI          string
+	Host         string `json:"host"`
+	Scheme       string `json:"scheme"`
+	Port         string `json:"port"`
+	URI          string `json:"uri"`
 }
 
 func (s *Settings) BuildURI() string {
@@ -61,7 +61,7 @@ func InitSettings() (*Settings, error) {
 	}
 	s.BuildURI()
 
-	b, err := json.Marshal(s)
+	b, err := json.MarshalIndent(s, "", " ")
 	if err != nil {
 		return s, err
 	}
