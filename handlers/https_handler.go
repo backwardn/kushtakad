@@ -3,26 +3,35 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/asdine/storm"
+	"github.com/asdine/storm/q"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/state"
 )
 
 func GetHttps(w http.ResponseWriter, r *http.Request) {
+	redir := "/kushtaka/dashboard"
 	app, err := state.Restore(r)
 	if err != nil {
 		app.Render.JSON(w, 404, err)
 		return
 	}
 
+	var letests []models.LETest
+	err = app.DB.All(&letests, storm.Reverse())
+	if err != nil {
+		app.Fail(err.Error())
+		http.Redirect(w, r, redir, 302)
+		return
+	}
+
+	app.View.LETests = letests
 	app.View.Links.Https = "active"
 	app.View.AddCrumb("HTTPS", "#")
 	app.Render.HTML(w, http.StatusOK, "admin/pages/https", app.View)
 	return
-}
-
-type Domain struct {
-	FQDN string `json:"fqdn"`
 }
 
 func PostTestFQDN(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +43,7 @@ func PostTestFQDN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var domain Domain
+	var domain models.Domain
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&domain)
 	if err != nil {
@@ -43,61 +52,51 @@ func PostTestFQDN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fqdn := models.NewFQDN()
-	fqdn.Test(domain.FQDN)
-	var resps []*Response
-	if !fqdn.Port80.Test {
-		resp := NewResponse("failed", "Binding to port :80 failed", fqdn.Port80.Err)
-		resp.Type = "port-80-answer"
-		resp.Obj = fqdn.Port80
-		resps = append(resps, resp)
-	} else {
-		resp := NewResponse("success", "Binding to port :80 succeeded", nil)
-		resp.Type = "port-80-answer"
-		resp.Obj = fqdn.Port80
-		resps = append(resps, resp)
+	tx, err := app.DB.Begin(true)
+	if err != nil {
+		resp := NewResponse("failed", "FQDN not provided?", err)
+		app.Render.JSON(w, 200, resp)
+		return
+	}
+	defer tx.Rollback()
+
+	var letests []models.LETest
+	err = app.DB.Select(
+		q.Eq("FQDN", domain.FQDN),
+		q.Eq("State", models.LEPending)).Find(&letests)
+
+	if len(letests) > 0 {
+		resp := NewResponse("failed", "That FQDN is currently in a pending state", nil)
+		app.Render.JSON(w, 200, resp)
+		return
 	}
 
-	if !fqdn.Port443.Test {
-		resp := NewResponse("failed", "Binding to port :443 failed", fqdn.Port443.Err)
-		resp.Type = "port-443-answer"
-		resp.Obj = fqdn.Port443
-		resps = append(resps, resp)
-	} else {
-		resp := NewResponse("success", "Binding to port :443 succeeded", nil)
-		resp.Type = "port-443-answer"
-		resp.Obj = fqdn.Port443
-		resps = append(resps, resp)
+	letest := &models.LETest{
+		FQDN:    domain.FQDN,
+		State:   models.LEPending,
+		Created: time.Now(),
 	}
 
-	if !fqdn.IPMatch.Test {
-		resp := NewResponse("failed", "Outbound IP address doesn't match your server's", fqdn.IPMatch.Err)
-		resp.Type = "ip-match-answer"
-		resp.Obj = fqdn.IPMatch
-		resps = append(resps, resp)
-	} else {
-		resp := NewResponse("success", "Outbound IP address matches", nil)
-		resp.Type = "ip-match-answer"
-		resp.Obj = fqdn.IPMatch
-		resps = append(resps, resp)
+	err = tx.Save(letest)
+	if err != nil {
+		resp := NewResponse("failed", "Failed to save the LETest struct", err)
+		app.Render.JSON(w, 200, resp)
+		return
 	}
 
-	if !fqdn.ARecord.Test {
-		resp := NewResponse("failed", "(a) record IP doesn't match your server's IP", fqdn.ARecord.Err)
-		resp.Type = "a-record-answer"
-		resp.Obj = fqdn.ARecord
-		resps = append(resps, resp)
-	} else {
-		resp := NewResponse("success", "(a) record IP matches server's IP", nil)
-		resp.Type = "a-record-answer"
-		resp.Obj = fqdn.ARecord
-		resps = append(resps, resp)
+	err = tx.Commit()
+	if err != nil {
+		resp := NewResponse("failed", "Failed to save the LETest struct", err)
+		app.Render.JSON(w, 200, resp)
+		return
 	}
 
-	//le := models.NewStageLE(app.User.Email, []string{domain.FQDN})
-	//app.LE <- le
+	domain.LETest = letest
+	le := models.NewStageLE(app.User.Email, domain, app.DB)
+	app.LE <- le
 
-	app.Render.JSON(w, 200, resps)
+	resp := NewResponse("success", "Succes to test LETest", nil)
+	app.Render.JSON(w, 200, resp)
 	log.Debug("End")
 	return
 }
@@ -110,7 +109,7 @@ func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var domain Domain
+	var domain models.Domain
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&domain)
 	if err != nil {
@@ -120,7 +119,7 @@ func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var resps []*Response
-	le := models.NewStageLE(app.User.Email, []string{domain.FQDN})
+	le := models.NewStageLE(app.User.Email, domain, app.DB)
 	app.LE <- le
 	resp := NewResponse("success", "Outbound IP address matches", nil)
 	resp.Type = "ip-match-answer"

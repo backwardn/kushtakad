@@ -15,6 +15,7 @@ type View struct {
 	State          *models.State
 	Links          *Links
 	Forms          *Forms
+	LETests        []models.LETest
 	Team           *models.Team
 	Teams          []models.Team
 	Token          *models.Token
@@ -51,7 +52,9 @@ func NewView() *View {
 	var users []models.User
 	var crumbs []*Crumb
 	var events []events.EventManager
+	var letests []models.LETest
 	return &View{
+		LETests:      letests,
 		FlashFail:    ff,
 		FlashSuccess: fs,
 		Teams:        tm,

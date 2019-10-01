@@ -50,10 +50,20 @@ func Run() {
 		select {
 		case le := <-sa.LE:
 			log.Debug("Let's Encrypt Start")
-			err := le.Magic.Manage(le.Domains)
+
+			err := le.Magic.Manage([]string{le.Domain.FQDN})
 			if err != nil {
+				le.Domain.LETest.State = models.LEFailed
+				le.Domain.LETest.StateMsg = err.Error()
+				le.DB.Update(le.Domain.LETest)
 				log.Fatal(err)
+			} else {
+				le.Domain.LETest.State = models.LESuccess
+				le.Domain.LETest.StateMsg = "This totally worked!"
+				le.DB.Update(le.Domain.LETest)
+				log.Debugf("Let's Encrypt Successful %s", le.Domain.FQDN)
 			}
+
 			log.Debug("Let's Encrypt End")
 		case <-sa.Reboot:
 			log.Info("Reboot channel signaled...")
@@ -67,7 +77,7 @@ func Run() {
 			log.Info("shutting down Angel...done.")
 			sa.Server.Shutdown(sa.ServerCtx)
 			return
-		case <-sa.ServerCtx.Done(): // if the angel's context is closed
+		case <-sa.ServerCtx.Done(): // if the server's context is closed
 			log.Info("shutting down ServerCtx...done.")
 			return
 		}

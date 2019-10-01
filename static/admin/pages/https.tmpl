@@ -1,64 +1,55 @@
 <div class="row">
-    <div class="col s12 m12 l12 marjen z-depth-1">
+        <div class="col s12 m4 m4">
+            <div class="marjen z-depth-1">
+                <div class="row">
+                    <h5 class="col s12 m12 l12">HTTPS Test</h5>
+                </div>
 
-        <div class="col s12 m6 m6">
-            <div class="row">
-                <h5 class="col s12 m12 l12">Domain Name</h5>
-            </div>
+                <div class="row">
+                    <div class="input-field col s12 m8 18">
+                        <input id="fqdn" type="text" name="fqdn" value="">
+                        <label for="fqdn" data-error="example: admin" data-success="valid">fqdn</label>
+                        <span class="helper-text" data-error="wrong" data-success="right">example: (test.example.com, kushtaka.example.com, www.example.com)</span>
+                    </div>
+                </div>
 
-            <div class="row">
-                <div class="input-field col s12 m8 18">
-                    <input id="fqdn" type="text" name="fqdn" value="">
-                    <label for="fqdn" data-error="example: admin" data-success="valid">fqdn</label>
-                    <span class="helper-text" data-error="wrong" data-success="right">example: (test.example.com, kushtaka.example.com, www.example.com)</span>
+                <div class="row">
+                    <div class="col s12 m8 18">
+                        <button onclick="postTest()" class="waves-effect waves-light teal lighten-1 btn">test</button>
+                    </div>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="col s12 m8 18">
-                    <button onclick="postTest()" class="waves-effect waves-light teal lighten-1 btn">test</button>
-                </div>
-            </div>
-
         </div>
 
-        <div class="col s12 m6 l6">
-            <div class="row">
-                <h5 class="col s12 m12 l12">FQDN Test</h5>
-            </div>
-
-            <div class="row">
-                <table class="striped">
-                    <tbody>
-                            <tr>
-                                <td>Can kushtaka bind to port (:80)?</td>
-                                <td><span id="port-80-answer">---</span></td>
+        <div class="col s12 m8 l8">
+            <div class="marjen z-depth-1">
+                <h5>HTTPS Results</h5>
+                <table id="service-table" class="striped">
+                    <thead>
+                        <tr>
+                            <th>FQDN</th>
+                            <th>State</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="services-tbody">
+                    {{ if len .LETests }}
+                        {{ range $key, $le := .LETests}}
+                            <tr id="letest-id-{{ $le.ID }}">
+                                <td>{{ $le.FQDN }}</td>
+                                <td class="tooltipped" data-position="bottom" data-tooltip="{{ $le.StateMsg }}">
+                                    {{ $le.State }}
+                                    <i class="material-icons icon-black">help_outline</i>
+                                </td>
+                                <td>{{ prettytime $le.Created }}</td>
                             </tr>
-                            <tr>
-                                <td>Can kushtaka bind to port (:443)?</td>
-                                <td><span id="port-443-answer">---</span></td>
-                            </tr>
-                            <tr>
-                                <td>Does an (a) record exist?</td>
-                                <td><span id="a-record-answer">---</span></td>
-                            </tr>
-                            <tr>
-                                <td>Does the (a) record (ip) <strong>match</strong> the (server) interface (ip)?</td>
-                                <td><span id="ip-match-answer">---</span></td>
-                            </tr>
+                        {{ end }}
+                    {{ end }}
                     </tbody>
                 </table>
             </div>
-
-            <div class="row">
-                <div class="col s12 m8 18">
-                    <button id="reboot" onclick="postReboot()" class="waves-effect waves-light disabled lighten-1 btn">install & reboot</button>
-                </div>
-            </div>
-
         </div>
 
-    </div>
 </div>
 
 
@@ -66,6 +57,10 @@
 
 
     var uri = "{{ .URI }}/kushtaka/https";
+
+    $(document).ready(function(){
+        $('.tooltipped').tooltip();
+    });
 
     function checkFill() {
         var cont = "reboot";
@@ -116,15 +111,14 @@
             st.innerHTML = "No";
         }
     }
-    function respTestFunc(resps) {
+    function respTestFunc(resp) {
+        /*
         var allTestsPassed = true;
-        resps.forEach(function(resp){
-            toasty(resp.Status, resp.Message);
-            if (!resp.Obj.Test) {
-                allTestsPassed = false;
-            }
-            answer(resp.Obj.Test, resp.Type);
-        });
+        toasty(resp.Status, resp.Message);
+        if (!resp.Test) {
+            allTestsPassed = false;
+        }
+        answer(resp.Obj.Test, resp.Type);
 
         var button = document.getElementById("reboot");
         if (allTestsPassed) {
@@ -136,6 +130,7 @@
         //    button.classList.add("red")
         //    button.classList.add("lighten-1")
         }
+        */
     }
 
     function toasty(status, message) {
