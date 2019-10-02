@@ -92,7 +92,7 @@ func PostTestFQDN(w http.ResponseWriter, r *http.Request) {
 	}
 
 	domain.LETest = letest
-	le := models.NewStageLE(app.User.Email, domain, app.DB)
+	le := models.NewStageLE(app.User.Email, state.DataDirLocation(), domain, app.DB)
 	app.LE <- le
 
 	resp := NewResponse("success", "Succes to test LETest", nil)
@@ -119,7 +119,7 @@ func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var resps []*Response
-	le := models.NewStageLE(app.User.Email, domain, app.DB)
+	le := models.NewStageLE(app.User.Email, state.DataDirLocation(), domain, app.DB)
 	app.LE <- le
 	resp := NewResponse("success", "Outbound IP address matches", nil)
 	resp.Type = "ip-match-answer"

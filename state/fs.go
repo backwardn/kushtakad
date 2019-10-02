@@ -102,3 +102,12 @@ func SessionLocation() string {
 
 	return path.Join(cwd, dataDir, sessionsDir)
 }
+
+func DataDirLocation() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "DataDirLocation() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, dataDir)
+}

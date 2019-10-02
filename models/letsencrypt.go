@@ -18,32 +18,34 @@ type Domain struct {
 	LETest *LETest
 }
 
-func NewStageLE(email string, domain Domain, db *storm.DB) LE {
+func NewStageLE(email, path string, domain Domain, db *storm.DB) LE {
 	return LE{
 		DB:     db,
-		Magic:  leStageCfg(email),
 		Domain: domain,
+		Magic:  leStageCfg(email, path),
 	}
 }
 
-func leStageCfg(email string) *certmagic.Config {
+func leStageCfg(email, path string) *certmagic.Config {
 	cert := certmagic.NewDefault()
+	cert.Storage = &certmagic.FileStorage{Path: path}
 	cert.CA = certmagic.LetsEncryptStagingCA
 	cert.Email = email
 	cert.Agreed = true
 	return cert
 }
 
-func NewLE(email string, domain Domain, db *storm.DB) LE {
+func NewLE(email, path string, domain Domain, db *storm.DB) LE {
 	return LE{
 		DB:     db,
-		Magic:  leCfg(email),
+		Magic:  leCfg(email, path),
 		Domain: domain,
 	}
 }
 
-func leCfg(email string) *certmagic.Config {
+func leCfg(email, path string) *certmagic.Config {
 	cert := certmagic.NewDefault()
+	cert.Storage = &certmagic.FileStorage{Path: path}
 	cert.CA = certmagic.LetsEncryptProductionCA
 	cert.Email = email
 	cert.Agreed = true
