@@ -132,7 +132,7 @@ func RunServer(r chan bool, l chan models.LE) *http.Server {
 	kushtaka.HandleFunc("/user/{id}", handlers.GetUser).Methods("GET")
 	kushtaka.HandleFunc("/user/{id}", handlers.PostUser).Methods("POST")
 	kushtaka.HandleFunc("/user/{id}", handlers.PutUser).Methods("PUT")
-	kushtaka.HandleFunc("/user/{id}", handlers.DeleteUser).Methods("DELETE")
+	kushtaka.HandleFunc("/user", handlers.DeleteUser).Methods("DELETE")
 
 	// teams
 	kushtaka.HandleFunc("/teams/page/{pid}/limit/{oid}", handlers.GetTeams).Methods("GET")

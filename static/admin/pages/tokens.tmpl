@@ -163,12 +163,9 @@
     function deleteTokenModal(id) {
         var modalElement = document.getElementById("delete-token-modal");
         var instance = M.Modal.getInstance(modalElement);
-
         document.getElementById("delete-token-modal-no").onclick = function() {cancelDelete(id)};
-        document.getElementById("delete-token-modal-yes").onclick = function() { deleteToken(id)};
-
+        document.getElementById("delete-token-modal-yes").onclick = function() {deleteToken(id)};
         instance.open();
-
     }
 
     function errc(err) {

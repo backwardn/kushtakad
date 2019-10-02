@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/kushtaka/kushtakad/models"
@@ -23,7 +25,55 @@ func PutUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	log.Error("DeleteUser()")
+	resp := &Response{}
+	w.Header().Set("Content-Type", "application/json")
+	app, err := state.Restore(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var user models.User
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&user)
+	if err != nil {
+		resp = NewResponse("error", "Unable to decode response body", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	tx, err := app.DB.Begin(true)
+	if err != nil {
+		resp = NewResponse("error", "Tx can't begin", err)
+		w.Write(resp.JSON())
+		return
+	}
+	defer tx.Rollback()
+
+	err = tx.One("ID", user.ID, &user)
+	if err != nil {
+		log.Error(err)
+		resp := NewResponse("error", "User id not found, does user exist?", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.DeleteStruct(&user)
+	if err != nil {
+		resp := NewResponse("error", "Unable to delete user", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		resp := NewResponse("error", "Unable to commit tx", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	msg := fmt.Sprintf("Successfully deleted the user [%s]", user.Email)
+	resp = NewResponse("success", msg, err)
+	w.Write(resp.JSON())
 	return
 }
 

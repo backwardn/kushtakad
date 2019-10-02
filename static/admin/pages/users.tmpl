@@ -44,10 +44,14 @@
                     </thead>
                     <tbody>
                     {{ range $key, $v := .Users }}
-                            <tr>
+                            <tr id="user-id-{{$v.ID}}">
                                 <td>{{ $v.Email }}</td>
                                 <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="updateServiceModal({ ID: {{ $v.ID }} email: {{ $v.Email }} } )"><i class="material-icons">settings</i></a></td>
-                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteServiceModal({ ID: {{ $v.ID }} email: {{ $v.Email }} } )"><i class="material-icons">delete_sweep</i></a></td>
+                                {{ if ne $v.ID 1}}
+                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteUserModal({  ID: {{$v.ID}} } )"><i class="material-icons">delete_sweep</i></a></td>
+                                {{ else }}
+                                <td><a class="disabled btn-floating waves-effect waves-light"><i class="material-icons">delete_sweep</i></button></td>
+                                {{ end }}
                             </tr>
                     {{ end }}
                     </tbody>
@@ -58,12 +62,92 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var elems = document.querySelectorAll('select');
-        var instances = M.FormSelect.init(elems, options = {classes:"select-tealo", dropdownOptions: {}});
-    });
 
-    $(document).ready(function(){
-        $('select').formSelect();
-    });
+</script>
+
+
+<!-- Delete Modal Structures -->
+<div id="delete-user-modal" class="modal-gap modal">
+    <div class="modal-content">
+        <div class="row">
+            <h5 class="col">Delete the User?</h5>
+        </div>
+
+        <div class="row">
+            <div class="input-field col">
+                <button id="delete-user-modal-no"  class="waves-effect waves-light teal lighten-1 btn">Cancel</button>
+                <button id="delete-user-modal-yes" class="waves-effect waves-light red lighten-1 btn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+<script>
+    
+        var uri = "{{ .URI }}/kushtaka/user";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.modal');
+            var instances = M.Modal.init(elems, {});
+        });
+
+        $(document).ready(function(){
+            $('.tooltipped').tooltip();
+        });
+
+        function respDeleteUser(modalType, resp) {
+            var modalElement = document.getElementById(modalType);
+            var instance = M.Modal.getInstance(modalElement);
+    
+            if (resp.Status === "success") {
+                M.toast({html: resp.Message , classes: 'green lighten-1'})
+                instance.close();
+            } else {
+                M.toast({html: resp.Message , classes: 'red lighten-1'})
+            }
+        }
+    
+        function deleteData(data, url) {
+            fetch(url, {
+            method: 'DELETE', // or 'PUT'
+            body: JSON.stringify(data), // data can be `string` or {object}!
+            headers:{
+                'Content-Type': 'application/json'
+            }
+            }).then(res => res.json())
+            .then(response => respDeleteUser("delete-user-modal", response))
+            .catch(error => errc(error));
+        }
+    
+        function cancelDelete(id) {
+            var modalElement = document.getElementById("delete-user-modal");
+            var instance = M.Modal.getInstance(modalElement);
+            instance.close();
+        }
+    
+        function deleteUser(obj) {
+            deleteData(obj, uri);
+            var id = "user-id-" + obj.ID.toString();
+            document.getElementById(id).remove();
+        }
+    
+        function deleteUserModal(id) {
+            var modalElement = document.getElementById("delete-user-modal");
+            var instance = M.Modal.getInstance(modalElement);
+    
+            document.getElementById("delete-user-modal-no").onclick = function() {cancelDelete(id)};
+            document.getElementById("delete-user-modal-yes").onclick = function() {deleteUser(id)};
+    
+            instance.open();
+    
+        }
+    
+        function errc(err) {
+            M.toast({html: err, classes: 'green lighten-1'})
+            console.error('Error:', err);
+        }
+    
+   
+    
 </script>
