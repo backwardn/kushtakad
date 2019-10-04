@@ -94,7 +94,10 @@ func Run() {
 				sa.HttpsServer.Shutdown(sa.HttpsServerCtx)
 			}
 
-			os.RemoveAll(state.AcmeTestLocation())
+			err := os.RemoveAll(state.AcmeTestLocation())
+			if err != nil {
+				log.Error(err)
+			}
 
 			sa.HttpServer, sa.HttpsServer = NewServers(sa)
 
