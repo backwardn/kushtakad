@@ -45,16 +45,16 @@ func NewServerAngel() *ServerAngel {
 	httpServer, httpsServer := RunServer(reboot, le)
 	angel.Interuptor(acancel)
 	return &ServerAngel{
-		AngelCtx:         actx,
-		AngelCancel:      acancel,
-		HttpServerCtx:    httpctx,
-		HttpServerCancel: httpcancel,
+		AngelCtx:          actx,
+		AngelCancel:       acancel,
+		HttpServerCtx:     httpctx,
+		HttpServerCancel:  httpcancel,
 		HttpsServerCtx:    httpsctx,
 		HttpsServerCancel: httpscancel,
-		HttpServer:       httpServer,
-		HttpsServer:      httpsServer,
-		Reboot:           reboot,
-		LE:               le,
+		HttpServer:        httpServer,
+		HttpsServer:       httpsServer,
+		Reboot:            reboot,
+		LE:                le,
 	}
 }
 

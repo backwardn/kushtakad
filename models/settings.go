@@ -38,7 +38,6 @@ func (s *Settings) BuildURI() string {
 
 	s.Scheme = "http"
 	if s.LeEnabled {
-		s.Host = s.LeFQDN
 		s.Port = ""
 		s.Scheme = "https"
 	}
