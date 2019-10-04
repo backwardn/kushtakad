@@ -67,7 +67,7 @@ func Run() {
 		case le := <-sa.LE:
 			log.Debug("Let's Encrypt Stage FQDN Test Start")
 
-			err := le.Magic.Manage([]string{le.Domain.FQDN})
+			err := le.Magic.ObtainCert(le.Domain.FQDN, false)
 			if err != nil {
 				le.Domain.LETest.State = models.LEFailed
 				le.Domain.LETest.StateMsg = err.Error()
