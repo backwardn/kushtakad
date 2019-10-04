@@ -27,9 +27,12 @@ type ServerAngel struct {
 
 func NewServers(sa *ServerAngel) (*http.Server, *http.Server) {
 	httpctx, httpcancel := context.WithCancel(context.Background())
+	httpsctx, httpscancel := context.WithCancel(context.Background())
 	httpServer, httpsServer := RunServer(sa.Reboot, sa.LE)
 	sa.HttpServerCtx = httpctx
 	sa.HttpServerCancel = httpcancel
+	sa.HttpsServerCtx = httpsctx
+	sa.HttpsServerCancel = httpscancel
 	return httpServer, httpsServer
 }
 
@@ -38,6 +41,7 @@ func NewServerAngel() *ServerAngel {
 	le := make(chan models.LE)
 	actx, acancel := context.WithCancel(context.Background())
 	httpctx, httpcancel := context.WithCancel(context.Background())
+	httpsctx, httpscancel := context.WithCancel(context.Background())
 	httpServer, httpsServer := RunServer(reboot, le)
 	angel.Interuptor(acancel)
 	return &ServerAngel{
@@ -45,6 +49,8 @@ func NewServerAngel() *ServerAngel {
 		AngelCancel:      acancel,
 		HttpServerCtx:    httpctx,
 		HttpServerCancel: httpcancel,
+		HttpsServerCtx:    httpsctx,
+		HttpsServerCancel: httpscancel,
 		HttpServer:       httpServer,
 		HttpsServer:      httpsServer,
 		Reboot:           reboot,
@@ -105,6 +111,9 @@ func Run() {
 
 			return
 		case <-sa.HttpServerCtx.Done(): // if the server's context is closed
+			log.Info("shutting down HTTP ServerCtx...done.")
+			return
+		case <-sa.HttpsServerCtx.Done(): // if the server's context is closed
 			log.Info("shutting down HTTP ServerCtx...done.")
 			return
 		}
