@@ -80,6 +80,11 @@ func Run() {
 				log.Debugf("Let's Encrypt Stage FQDN Test Successful %s", le.Domain.FQDN)
 			}
 
+			err = os.RemoveAll(state.AcmeTestLocation())
+			if err != nil {
+				log.Error(err)
+			}
+
 			log.Debug("Let's Encrypt Stage FQDN Test End")
 		case <-sa.Reboot:
 
@@ -92,11 +97,6 @@ func Run() {
 			if sa.HttpsServer != nil {
 				log.Debug("Shutting down HTTPS server")
 				sa.HttpsServer.Shutdown(sa.HttpsServerCtx)
-			}
-
-			err := os.RemoveAll(state.AcmeTestLocation())
-			if err != nil {
-				log.Error(err)
 			}
 
 			sa.HttpServer, sa.HttpsServer = NewServers(sa)
