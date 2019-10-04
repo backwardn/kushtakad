@@ -3,9 +3,11 @@ package server
 import (
 	"context"
 	"net/http"
+	"os"
 
 	"github.com/kushtaka/kushtakad/angel"
 	"github.com/kushtaka/kushtakad/models"
+	"github.com/kushtaka/kushtakad/state"
 )
 
 type ServerAngel struct {
@@ -91,6 +93,8 @@ func Run() {
 				log.Debug("Shutting down HTTPS server")
 				sa.HttpsServer.Shutdown(sa.HttpsServerCtx)
 			}
+
+			os.RemoveAll(state.AcmeTestLocation())
 
 			sa.HttpServer, sa.HttpsServer = NewServers(sa)
 

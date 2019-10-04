@@ -37,7 +37,11 @@ func leStageCfg(email, path string) *certmagic.Config {
 
 func NewLE(path string, domain Domain, db *storm.DB) LE {
 	var user User
-	db.One("ID", 1, &user)
+	err := db.One("ID", 1, &user)
+	if err != nil {
+		log.Error(err)
+	}
+
 	return LE{
 		DB:     db,
 		Magic:  leCfg(user.Email, path),

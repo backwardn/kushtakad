@@ -17,6 +17,7 @@ import (
 )
 
 func HTTPS(settings *models.Settings, mux http.Handler, db *storm.DB) (*http.Server, *http.Server) {
+	log.Debug("HTTP Begin")
 	var httpLn net.Listener
 	var httpsLn net.Listener
 	var httpWg sync.WaitGroup
@@ -83,6 +84,7 @@ func HTTPS(settings *models.Settings, mux http.Handler, db *storm.DB) (*http.Ser
 
 	go httpServer.Serve(hln)
 	go httpsServer.Serve(hsln)
+	log.Debug("HTTP end")
 	return httpServer, httpsServer
 }
 
