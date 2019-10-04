@@ -10,22 +10,24 @@ import (
 	"time"
 
 	"github.com/kushtaka/kushtakad/models"
-	"github.com/mholt/certmagic"
+	"github.com/kushtaka/kushtakad/state"
+	"github.com/asdine/storm"
 	"github.com/pkg/browser"
 	"github.com/urfave/negroni"
 )
 
-func HTTPS(domainNames []string, mux http.Handler) (*http.Server, *http.Server) {
+func HTTPS(settings *models.Settings, mux http.Handler, db *storm.DB) (*http.Server, *http.Server) {
 	var httpLn net.Listener
 	var httpsLn net.Listener
 	var httpWg sync.WaitGroup
 	var lnMu sync.Mutex
 	var err error
 
-	certmagic.Default.Agreed = true
-	cfg := certmagic.NewDefault()
 
-	err = cfg.Manage(domainNames)
+	domain := models.Domain{FQDN: settings.LeFQDN}
+	le := models.NewLE(state.DataDirLocation(), domain, db)
+	cfg := le.Magic
+	err = cfg.Manage([]string{settings.LeFQDN})
 	if err != nil {
 		log.Error(err)
 		return nil, nil
@@ -53,15 +55,6 @@ func HTTPS(domainNames []string, mux http.Handler) (*http.Server, *http.Server) 
 		return nil, nil
 	}
 
-	/*
-		go func() {
-			httpWg.Wait()
-			lnMu.Lock()
-			httpLn.Close()
-			httpsLn.Close()
-			lnMu.Unlock()
-		}()
-	*/
 	hln, hsln := httpLn, httpsLn
 	lnMu.Unlock()
 
@@ -87,7 +80,7 @@ func HTTPS(domainNames []string, mux http.Handler) (*http.Server, *http.Server) 
 	}
 
 	log.Debugf("%v Serving HTTP->HTTPS on %s and %s",
-		domainNames, hln.Addr(), hsln.Addr())
+		settings.LeFQDN, hln.Addr(), hsln.Addr())
 
 	go httpServer.Serve(hln)
 	go httpsServer.Serve(hsln)
