@@ -16,10 +16,13 @@ const (
 	dataDir     = "data"
 	imagesDir   = "images"
 	sessionsDir = "sessions"
+	acme        = "acme"
+	acmeProd    = "prod"
+	acmeTest    = "test"
 	dbFile      = "kushtaka.db"
 )
 
-var cwd, themePath, imagesPath, sessionsPath string
+var cwd, themePath, imagesPath, sessionsPath, acmeProdPath, acmeTestPath string
 
 // SetupFileStructure makes sure the files on the file system are in the correct state
 // if they are not, the application must fail
@@ -44,6 +47,22 @@ func SetupFileStructure(box *packr.Box) error {
 		err = os.MkdirAll(sessionsPath, 0744)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", sessionsPath))
+		}
+	}
+
+	acmeProdPath = path.Join(cwd, dataDir, acme, acmeProd)
+	if _, err := os.Stat(acmeProdPath); os.IsNotExist(err) {
+		err = os.MkdirAll(acmeProdPath, 0744)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", acmeProdPath))
+		}
+	}
+
+	acmeTestPath = path.Join(cwd, dataDir, acme, acmeTest)
+	if _, err := os.Stat(acmeTestPath); os.IsNotExist(err) {
+		err = os.MkdirAll(acmeTestPath, 0744)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", acmeTestPath))
 		}
 	}
 
@@ -101,6 +120,24 @@ func SessionLocation() string {
 	}
 
 	return path.Join(cwd, dataDir, sessionsDir)
+}
+
+func AcmeProdLocation() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "AcmeProdLocation() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, dataDir, acme, acmeProd)
+}
+
+func AcmeTestLocation() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "AcmeTestLocation() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, dataDir, acme, acmeTest)
 }
 
 func DataDirLocation() string {

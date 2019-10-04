@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/asdine/storm"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/state"
-	"github.com/asdine/storm"
 	"github.com/pkg/browser"
 	"github.com/urfave/negroni"
 )
@@ -23,9 +23,8 @@ func HTTPS(settings *models.Settings, mux http.Handler, db *storm.DB) (*http.Ser
 	var lnMu sync.Mutex
 	var err error
 
-
 	domain := models.Domain{FQDN: settings.LeFQDN}
-	le := models.NewLE(state.DataDirLocation(), domain, db)
+	le := models.NewLE(state.AcmeProdLocation(), domain, db)
 	cfg := le.Magic
 	err = cfg.Manage([]string{settings.LeFQDN})
 	if err != nil {

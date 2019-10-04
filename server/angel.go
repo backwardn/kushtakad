@@ -81,24 +81,20 @@ func Run() {
 			log.Debug("Let's Encrypt Stage FQDN Test End")
 		case <-sa.Reboot:
 
+			log.Debug("Begin Reboot")
 			if sa.HttpServer != nil {
+				log.Debug("Shutting down HTTP server")
 				sa.HttpServer.Shutdown(sa.HttpServerCtx)
 			}
 
 			if sa.HttpsServer != nil {
+				log.Debug("Shutting down HTTPS server")
 				sa.HttpsServer.Shutdown(sa.HttpsServerCtx)
 			}
 
-			set, err := models.NewSettings()
-			if err != nil {
-				log.Debug(err)
-			}
+			sa.HttpServer, sa.HttpsServer = NewServers(sa)
 
-			if set.LeEnabled {
-				sa.HttpServer, sa.HttpsServer = NewServers(sa)
-			}
-
-			log.Info("Done.")
+			log.Info("End Reboot")
 		case <-sa.AngelCtx.Done(): // if the angel's context is closed
 			log.Info("shutting down Angel...done.")
 			if sa.HttpServer != nil {
@@ -114,7 +110,7 @@ func Run() {
 			log.Info("shutting down HTTP ServerCtx...done.")
 			return
 		case <-sa.HttpsServerCtx.Done(): // if the server's context is closed
-			log.Info("shutting down HTTP ServerCtx...done.")
+			log.Info("shutting down HTTPS ServerCtx...done.")
 			return
 		}
 		//default:
