@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/asdine/storm"
@@ -92,7 +93,7 @@ func PostTestFQDN(w http.ResponseWriter, r *http.Request) {
 	}
 
 	domain.LETest = letest
-	le := models.NewStageLE(app.User.Email, state.DataDirLocation(), domain, app.DB)
+	le := models.NewStageLE(app.User.Email, os.TempDir(), domain, app.DB)
 	app.LE <- le
 
 	resp := NewResponse("success", "Succes to test LETest", nil)

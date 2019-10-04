@@ -165,6 +165,9 @@
         }).then(res => res.json())
         .then(response => respFunc(response))
         .catch(error => errc(error));
+
+        setTimeout("location.href = 'https://" + data.FQDN + "/kushtaka/https';", 3000);
+
     }
 
 
