@@ -9,38 +9,46 @@ import (
 )
 
 type ServerAngel struct {
-	AngelCtx     context.Context
-	AngelCancel  context.CancelFunc
-	ServerCtx    context.Context
-	ServerCancel context.CancelFunc
-	Server       *http.Server
-	Reboot       chan bool
-	LE           chan models.LE
+	AngelCtx    context.Context
+	AngelCancel context.CancelFunc
+
+	HttpServerCtx    context.Context
+	HttpServerCancel context.CancelFunc
+
+	HttpsServerCtx    context.Context
+	HttpsServerCancel context.CancelFunc
+
+	HttpServer  *http.Server
+	HttpsServer *http.Server
+
+	Reboot chan bool
+	LE     chan models.LE
 }
 
-func NewServer(sa *ServerAngel) *http.Server {
-	sctx, scancel := context.WithCancel(context.Background())
-	srv := RunServer(sa.Reboot, sa.LE)
-	sa.ServerCtx = sctx
-	sa.ServerCancel = scancel
-	return srv
+func NewServers(sa *ServerAngel) (*http.Server, *http.Server) {
+	httpctx, httpcancel := context.WithCancel(context.Background())
+	httpServer, httpsServer := RunServer(sa.Reboot, sa.LE)
+	sa.HttpServerCtx = httpctx
+	sa.HttpServerCancel = httpcancel
+	return httpServer, httpsServer
 }
 
 func NewServerAngel() *ServerAngel {
 	reboot := make(chan bool)
 	le := make(chan models.LE)
 	actx, acancel := context.WithCancel(context.Background())
-	sctx, scancel := context.WithCancel(context.Background())
-	srv := RunServer(reboot, le)
+	httpctx, httpcancel := context.WithCancel(context.Background())
+	httpServer, httpsServer := RunServer(reboot, le)
 	angel.Interuptor(acancel)
 	return &ServerAngel{
-		AngelCtx:     actx,
-		AngelCancel:  acancel,
-		ServerCtx:    sctx,
-		ServerCancel: scancel,
-		Server:       srv,
-		Reboot:       reboot,
-		LE:           le,
+		AngelCtx:         actx,
+		AngelCancel:      acancel,
+		HttpServerCtx:    httpctx,
+		HttpServerCancel: httpcancel,
+		HttpServer:       httpServer,
+		HttpsServer:      httpsServer,
+		Reboot:           reboot,
+		LE:               le,
 	}
 }
 
@@ -49,36 +57,55 @@ func Run() {
 	for {
 		select {
 		case le := <-sa.LE:
-			log.Debug("Let's Encrypt Start")
+			log.Debug("Let's Encrypt Stage FQDN Test Start")
 
 			err := le.Magic.Manage([]string{le.Domain.FQDN})
 			if err != nil {
 				le.Domain.LETest.State = models.LEFailed
 				le.Domain.LETest.StateMsg = err.Error()
 				le.DB.Update(le.Domain.LETest)
-				log.Fatal(err)
+				log.Error(err)
 			} else {
 				le.Domain.LETest.State = models.LESuccess
 				le.Domain.LETest.StateMsg = "This totally worked!"
 				le.DB.Update(le.Domain.LETest)
-				log.Debugf("Let's Encrypt Successful %s", le.Domain.FQDN)
+				log.Debugf("Let's Encrypt Stage FQDN Test Successful %s", le.Domain.FQDN)
 			}
 
-			log.Debug("Let's Encrypt End")
+			log.Debug("Let's Encrypt Stage FQDN Test End")
 		case <-sa.Reboot:
-			log.Info("Reboot channel signaled...")
-			log.Info("Shutting down server...")
-			sa.Server.Shutdown(sa.ServerCtx)
-			log.Info("Done.")
-			log.Info("Rebooting server...")
-			sa.Server = NewServer(sa)
+
+			if sa.HttpServer != nil {
+				sa.HttpServer.Shutdown(sa.HttpServerCtx)
+			}
+
+			if sa.HttpsServer != nil {
+				sa.HttpsServer.Shutdown(sa.HttpsServerCtx)
+			}
+
+			set, err := models.NewSettings()
+			if err != nil {
+				log.Debug(err)
+			}
+
+			if set.LeEnabled {
+				sa.HttpServer, sa.HttpsServer = NewServers(sa)
+			}
+
 			log.Info("Done.")
 		case <-sa.AngelCtx.Done(): // if the angel's context is closed
 			log.Info("shutting down Angel...done.")
-			sa.Server.Shutdown(sa.ServerCtx)
+			if sa.HttpServer != nil {
+				sa.HttpServer.Shutdown(sa.HttpServerCtx)
+			}
+
+			if sa.HttpsServer != nil {
+				sa.HttpsServer.Shutdown(sa.HttpsServerCtx)
+			}
+
 			return
-		case <-sa.ServerCtx.Done(): // if the server's context is closed
-			log.Info("shutting down ServerCtx...done.")
+		case <-sa.HttpServerCtx.Done(): // if the server's context is closed
+			log.Info("shutting down HTTP ServerCtx...done.")
 			return
 		}
 		//default:

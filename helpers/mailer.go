@@ -124,7 +124,7 @@ func (te *TestEvent) SendTestEvent() error {
 func (m *Mailer) SendSensorEvent(eventid, furl, hashid, state, emailtext string, tt time.Time) error {
 
 	fname := "event_sensor.tmpl"
-	s, err := models.FindSettings()
+	s, err := models.NewSettings()
 	if err != nil {
 		return err
 	}

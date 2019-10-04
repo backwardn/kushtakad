@@ -9,8 +9,10 @@
                 <div class="row">
                     <div class="input-field col s12 m8 18">
                         <input id="fqdn" type="text" name="fqdn" value="">
-                        <label for="fqdn" data-error="example: admin" data-success="valid">fqdn</label>
-                        <span class="helper-text" data-error="wrong" data-success="right">example: (test.example.com, kushtaka.example.com, www.example.com)</span>
+                        <label for="note">
+                            FQDN
+                            <a class="tooltipped" data-position="bottom" data-tooltip="examples: test.example.com, kushtaka.example.com, www.example.com"><i class="material-icons icon-black">help_outline</i></a>
+                        </label>
                     </div>
                 </div>
 
@@ -19,7 +21,6 @@
                         <button onclick="postTest()" class="waves-effect waves-light teal lighten-1 btn">test</button>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -31,7 +32,7 @@
                         <tr>
                             <th>FQDN</th>
                             <th>State</th>
-                            <th>Created</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="services-tbody">
@@ -39,11 +40,15 @@
                         {{ range $key, $le := .LETests}}
                             <tr id="letest-id-{{ $le.ID }}">
                                 <td>{{ $le.FQDN }}</td>
-                                <td class="tooltipped" data-position="bottom" data-tooltip="{{ $le.StateMsg }}">
+                                <td class="tooltipped" data-position="bottom" data-tooltip="{{ prettytime $le.Created }} : {{ $le.StateMsg }}">
                                     {{ $le.State }}
                                     <i class="material-icons icon-black">help_outline</i>
                                 </td>
-                                <td>{{ prettytime $le.Created }}</td>
+                                {{ if eq $le.State "success"}}
+                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="postReboot( {{$le}} )"><i class="material-icons">autorenew</i></a></td>
+                                {{ else }}
+                                <td><a class="disabled btn-floating waves-effect waves-light"><i class="material-icons">autorenew</i></button></td>
+                                {{ end}}
                             </tr>
                         {{ end }}
                     {{ end }}
@@ -142,13 +147,11 @@
         }
     }
 
-    function postReboot() {
+    function postReboot(obj) {
         url = uri + "/reboot";
-        var data = getForm();
-        M.toast({html: "Trying to send...", classes: 'orange lighten-1'})
+        M.toast({html: "Installing cert and rebooting...", classes: 'orange lighten-1'})
         console.log(url);
-        console.log(data);
-        postData(data, url);
+        postData(obj, url);
     }
 
 

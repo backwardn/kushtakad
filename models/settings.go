@@ -19,10 +19,30 @@ type Settings struct {
 	Host         string `json:"host"`
 	Scheme       string `json:"scheme"`
 	Port         string `json:"port"`
-	URI          string `json:"uri"`
+	URI          string `json:"base_uri_for_webapp"`
+	LeEnabled    bool   `json:"lets_encrypt_enabled"`
+	LeFQDN       string `json:"lets_encrypt_fqdn"`
 }
 
 func (s *Settings) BuildURI() string {
+	if len(s.Host) == 0 {
+		if os.Getenv("KUSHTAKA_ENV") == "development" {
+			s.Host = "localhost"
+			s.Port = ":8080"
+		} else {
+			ip := GetOutboundIP().String()
+			s.Host = fmt.Sprintf("%s", ip)
+			s.Port = ":8080"
+		}
+	}
+
+	s.Scheme = "http"
+	if s.LeEnabled {
+		s.Host = s.LeFQDN
+		s.Port = ""
+		s.Scheme = "https"
+	}
+
 	if os.Getenv("KUSHTAKA_ENV") == "development" {
 		s.URI = fmt.Sprintf("%s://%s%s", "http", "localhost", ":3000")
 	} else if len(s.URI) == 0 {
@@ -32,7 +52,7 @@ func (s *Settings) BuildURI() string {
 }
 
 func InitSettings() (*Settings, error) {
-	s, err := FindSettings()
+	s, err := NewSettings()
 	if len(s.SessionHash) != 32 {
 		s.SessionHash = securecookie.GenerateRandomKey(32)
 	}
@@ -45,28 +65,9 @@ func InitSettings() (*Settings, error) {
 		s.CsrfHash = securecookie.GenerateRandomKey(32)
 	}
 
-	if len(s.Host) == 0 {
-		if os.Getenv("KUSHTAKA_ENV") == "development" {
-			s.Host = "localhost"
-			s.Port = ":8080"
-		} else {
-			ip := GetOutboundIP().String()
-			s.Host = fmt.Sprintf("%s", ip)
-			s.Port = ":8080"
-		}
-	}
-
-	if s.Scheme != "http" || s.Scheme != "https" {
-		s.Scheme = "http"
-	}
 	s.BuildURI()
 
-	b, err := json.MarshalIndent(s, "", " ")
-	if err != nil {
-		return s, err
-	}
-
-	err = ioutil.WriteFile("server.json", b, 0644)
+	err = s.WriteSettings()
 	if err != nil {
 		return s, err
 	}
@@ -74,7 +75,20 @@ func InitSettings() (*Settings, error) {
 	return s, nil
 }
 
-func FindSettings() (*Settings, error) {
+func (s *Settings) WriteSettings() error {
+	b, err := json.MarshalIndent(s, "", " ")
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile("server.json", b, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func NewSettings() (*Settings, error) {
 	log.Debug("start")
 	settings := &Settings{}
 	jsonFile, err := os.Open("server.json")

@@ -109,23 +109,49 @@ func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var domain models.Domain
+	var let models.LETest
 	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&domain)
+	err = decoder.Decode(&let)
 	if err != nil {
 		resp := NewResponse("failed", "FQDN not provided?", err)
 		app.Render.JSON(w, 200, resp)
 		return
 	}
 
-	var resps []*Response
-	le := models.NewStageLE(app.User.Email, state.DataDirLocation(), domain, app.DB)
-	app.LE <- le
-	resp := NewResponse("success", "Outbound IP address matches", nil)
-	resp.Type = "ip-match-answer"
-	resp.Obj = le
-	resps = append(resps, resp)
-	app.Render.JSON(w, 200, resps)
+	err = app.DB.One("ID", let.ID, &let)
+	if err != nil {
+		resp := NewResponse("failed", "Cannot find the LETest ID you provided", err)
+		app.Render.JSON(w, 200, resp)
+		return
+	}
+
+	set, err := models.NewSettings()
+	if err != nil {
+		resp := NewResponse("failed", "Unable to init NewSettings()", err)
+		app.Render.JSON(w, 200, resp)
+		return
+	}
+
+	set.LeFQDN = let.FQDN
+	set.LeEnabled = true
+	err = set.WriteSettings()
+	if err != nil {
+		resp := NewResponse("failed", "Unable to write settings", err)
+		app.Render.JSON(w, 200, resp)
+		return
+	}
+
+	err = app.DB.Close()
+	if err != nil {
+		resp := NewResponse("failed", "Unable to close db", err)
+		app.Render.JSON(w, 200, resp)
+		return
+	}
+
+	app.Reboot <- true
+
+	resp := NewResponse("success", "Reboot...", nil)
+	app.Render.JSON(w, 200, resp)
 	log.Debug("End")
 	return
 }

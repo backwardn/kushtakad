@@ -6,9 +6,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"net/http"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/asdine/storm"
 	packr "github.com/gobuffalo/packr/v2"
@@ -17,7 +15,6 @@ import (
 	"github.com/kushtaka/kushtakad/handlers"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/state"
-	"github.com/pkg/browser"
 	"github.com/urfave/negroni"
 )
 
@@ -35,7 +32,7 @@ var (
 	err      error
 )
 
-func RunServer(r chan bool, l chan models.LE) *http.Server {
+func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	gob.Register(&state.App{})
 	box = packr.New(assetsFolder, "../static")
 	reboot = r
@@ -170,31 +167,14 @@ func RunServer(r chan bool, l chan models.LE) *http.Server {
 	n.UseHandler(rtr)
 	n.Use(negroni.HandlerFunc(after))
 
-	srv := setup(settings, n)
-	go func() {
-		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatalf("The http server died :%s", err)
-		}
-	}()
-	return srv
+	return run(settings, n)
 }
 
-func setup(settings *models.Settings, n *negroni.Negroni) *http.Server {
-	env := os.Getenv("KUSHTAKA_ENV")
-	go func() {
-		time.Sleep(1 * time.Second)
-		log.Infof("Listening on...%s\n", settings.Host)
-		if env != "development" {
-			err := browser.OpenURL(settings.URI)
-			if err != nil {
-				log.Error(err)
-			}
-		}
-	}()
-
-	log.Debugf("settings.Host %s", settings.Host)
-	log.Debugf("settings.URI %s", settings.URI)
-	return &http.Server{Addr: settings.Port, Handler: n}
+func run(settings *models.Settings, n *negroni.Negroni) (*http.Server, *http.Server) {
+	if settings.LeEnabled {
+		return HTTPS([]string{settings.LeFQDN}, n)
+	}
+	return HTTP(settings, n), nil
 }
 
 // forceSetup is a middleware function that makes sure
