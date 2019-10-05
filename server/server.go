@@ -67,9 +67,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	rtr.HandleFunc("/setup", handlers.GetSetup).Methods("GET")
 	rtr.HandleFunc("/setup", handlers.PostSetup).Methods("POST")
 	rtr.HandleFunc("/logout", handlers.PostLogout).Methods("POST")
-	rtr.HandleFunc("/t/{t}/i.png", handlers.GetLinkEvent).Methods("GET")
-	rtr.HandleFunc("/p/{t}/i.png", handlers.GetPdfEvent).Methods("GET")
-	rtr.HandleFunc("/d/{t}/i.png", handlers.GetDocxEvent).Methods("GET")
+	rtr.HandleFunc("/t/{id}/i.png", handlers.GetTokenEvent).Methods("GET")
 	rtr.HandleFunc("/", handlers.IndexCheckr).Methods("GET")
 	rtr.NotFoundHandler = &NotFound{}
 

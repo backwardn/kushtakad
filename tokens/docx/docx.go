@@ -473,7 +473,7 @@ func BuildDocx(baseurl string, b []byte) (*DocxContext, error) {
 	d := r.Editable()
 	d.ReplaceCoreRaw("aaaaaaaaaaaaaaaaaaaa", created)
 	d.ReplaceCoreRaw("bbbbbbbbbbbbbbbbbbbb", now)
-	retKey, retUrl := helpers.GenerateLink(baseurl, "d", 32)
+	retKey, retUrl := helpers.GenerateLink(baseurl, "t", 32)
 	d.ReplaceFooterRaw("HONEYDROP_TOKEN_URL", retUrl)
 
 	var buf bytes.Buffer

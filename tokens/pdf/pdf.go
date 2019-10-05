@@ -86,7 +86,7 @@ func BuildPdf(url string, pdfb []byte) (pdfc *PdfContext, err error) {
 
 	// this brute forces a url of the correct  buffer size in order to fit in the zlib compressed space of the pdf
 	for len(bytesZlib) != len(buf.Bytes()) {
-		retUrl, retKey = helpers.GenerateLink(url, "p", size)
+		retUrl, retKey = helpers.GenerateLink(url, "t", size)
 		rp := bytes.Replace([]byte(buf.String()), []byte(StaticUrl), []byte(retUrl), -1)
 
 		var bf bytes.Buffer

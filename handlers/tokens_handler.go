@@ -96,6 +96,7 @@ func PostTokens(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		token.Key = pdfCtx.Key
 		token.TokenContext = pdfCtx
 		log.Debug(pdfCtx)
 	case "docx":
@@ -113,6 +114,7 @@ func PostTokens(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		token.Key = docxctx.Key
 		token.TokenContext = docxctx
 		log.Debug(docxctx)
 	}
