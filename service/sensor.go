@@ -81,7 +81,7 @@ func startSensor(auth *Auth, ctx context.Context, svm []*ServiceMap) {
 			case <-ctx.Done():
 				return
 			case conn := <-incoming:
-				go h.handle(conn)
+				h.handle(conn)
 			}
 		}
 	}()
