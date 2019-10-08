@@ -22,6 +22,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/google/martian/log"
 )
 
 // HTFS - Honeytrap filesystem:
@@ -58,6 +60,7 @@ func (f *Htfs) Cwd() string {
 
 func (f *Htfs) ChangeDir(path string) error {
 
+	log.Debugf("%s", path)
 	rpath := f.RealPath(path)
 
 	d, err := os.Lstat(rpath)

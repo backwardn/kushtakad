@@ -222,6 +222,7 @@ func (cmd commandCwd) RequireAuth() bool {
 }
 
 func (cmd commandCwd) Execute(conn *Conn, param string) {
+	log.Debugf("%s", param)
 	err := conn.driver.ChangeDir(param)
 	path := conn.driver.CurDir()
 	if err == nil {

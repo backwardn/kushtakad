@@ -85,7 +85,12 @@ func (conn *Conn) PassivePort() int {
 		minPort, _ := strconv.Atoi(strings.TrimSpace(portRange[0]))
 		maxPort, _ := strconv.Atoi(strings.TrimSpace(portRange[1]))
 
-		port := minPort + mrand.Intn(maxPort-minPort)
+		var port int
+		if minPort != maxPort {
+			port = minPort + mrand.Intn(maxPort-minPort)
+		} else {
+			port = minPort + 1
+		}
 		return port
 	}
 	// let system automatically chose one port

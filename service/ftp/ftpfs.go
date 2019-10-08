@@ -45,7 +45,6 @@ func (ftp *Fs) Stat(path string) (os.FileInfo, error) {
 }
 
 func (ftp *Fs) ChangeDir(path string) error {
-
 	return ftp.ChangeDir(path)
 }
 

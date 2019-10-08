@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/kushtaka/kushtakad/events"
 	"github.com/kushtaka/kushtakad/service/filesystem"
 )
 
@@ -48,9 +49,10 @@ func (f *FtpService) ConfigureAndRun() {
 				"anonymous": "anonymous",
 			},
 		},
-		Name: f.ServerName,
+		//Name: f.ServerName,
+		Name: "ftp.bend.k12.or.us",
 		//WelcomeMessage: f.Banner,
-		WelcomeMessage: "Welcome Banner Test for Kushtaka",
+		WelcomeMessage: "DiskStation FTP server ready.\r\n",
 		PassivePorts:   fmt.Sprintf("%d-%d", f.Port, f.Port),
 	}
 
@@ -59,7 +61,7 @@ func (f *FtpService) ConfigureAndRun() {
 	f.server.tlsConfig = simpleTLSConfig(cert)
 	if f.server.tlsConfig != nil {
 		//s.server.TLS = true
-		f.server.ExplicitFTPS = false
+		f.server.ExplicitFTPS = true
 	}
 
 	base, root := store.FileSystem()
@@ -147,6 +149,12 @@ type FtpService struct {
 func (s FtpService) Handle(ctx context.Context, conn net.Conn) error {
 
 	ftpConn := s.server.newConn(conn, s.driver, s.recv)
+
+	em := events.NewEventManager("ftp", s.Port, s.SensorID)
+	err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
+	if err != nil {
+		log.Debug(err)
+	}
 
 	/*
 		go func() {
