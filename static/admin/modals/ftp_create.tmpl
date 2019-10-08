@@ -1,0 +1,45 @@
+{{ define "admin/modals/ftp_create" }}
+
+ <!-- FTP Modal Structures -->
+ <div id="ftp-modal" class="modal-gap modal">
+    <div class="modal-content">
+
+            <div class="row">
+                <h5 class="col">Add FTP Service</h5>
+            </div>
+
+            <div class="row">
+                <div class="input-field col s2">
+                    <input id="ftp-port" type="text" name="ftp-port" value="" required class="validate">
+
+                    <label for="team">
+                        Port 
+                        <a class="tooltipped" data-position="bottom" data-tooltip="What port should this emulated service bind on?"><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
+                </div>
+            </div>
+    
+            <div class="row">
+                <div class="input-field col">
+                    <select id="ftp-emulate" name="ftp-emulate">
+                        <option value="" disabled selected>---</option>
+                        <option value="basic">basic</option>
+                    </select>
+
+                    <label for="team">
+                        Type
+                        <a class="tooltipped" data-position="bottom" data-tooltip="What kind of ftp server should we emulate?"><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col">
+                    <button onclick="post('ftp')" class="waves-effect waves-light teal lighten-1 btn">Submit</button>
+                </div>
+            </div>
+
+    </div>
+</div>
+
+{{ end }}

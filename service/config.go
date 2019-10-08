@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/kushtaka/kushtakad/service/ftp"
 	"github.com/kushtaka/kushtakad/service/telnet"
 	"github.com/mitchellh/mapstructure"
 )
@@ -137,6 +138,25 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 			sm.Service = tel
 			svm = append(svm, sm)
 			log.Infof("Did it decode? %v", tel)
+		case "ftp":
+			sm := &ServiceMap{
+				Type:       v.Type,
+				Port:       v.Port,
+				SensorName: v.SensorName,
+			}
+
+			var ftp ftp.FtpService
+			err := mapstructure.Decode(v.Service, &ftp)
+			if err != nil {
+				return nil, err
+			}
+
+			ftp.Host = host
+			ftp.ApiKey = key
+			ftp.ConfigureAndRun()
+			sm.Service = ftp
+			svm = append(svm, sm)
+			log.Infof("Did it decode? %v", ftp)
 		}
 	}
 

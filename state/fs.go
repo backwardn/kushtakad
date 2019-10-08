@@ -20,6 +20,7 @@ const (
 	acmeProd    = "prod"
 	acmeTest    = "test"
 	dbFile      = "kushtaka.db"
+	dbSensor    = "sensor.db"
 )
 
 var cwd, themePath, imagesPath, sessionsPath, acmeProdPath, acmeTestPath string
@@ -111,6 +112,15 @@ func DbLocation() string {
 	}
 
 	return path.Join(cwd, dataDir, dbFile)
+}
+
+func DbSensorLocation() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "DbLocation() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, dataDir, dbSensor)
 }
 
 func SessionLocation() string {

@@ -10,6 +10,7 @@ import (
 	"github.com/asdine/storm"
 	"github.com/gorilla/mux"
 	"github.com/kushtaka/kushtakad/models"
+	"github.com/kushtaka/kushtakad/service/ftp"
 	"github.com/kushtaka/kushtakad/service/telnet"
 	"github.com/kushtaka/kushtakad/state"
 )
@@ -169,6 +170,28 @@ func CreateService(stype string, sensor models.Sensor, r *http.Request, tx storm
 		cfg.SensorID = sensor.ID
 		cfg.Type = stype
 		cfg.Port = tel.Port
+	case "ftp":
+		var ftp ftp.FtpService
+		decoder := json.NewDecoder(r.Body)
+		err = decoder.Decode(&ftp)
+		if err != nil {
+			return cfg, fmt.Errorf("Unable to decode json : %w", err)
+		}
+
+		if ftp.Port == 0 {
+			return cfg, fmt.Errorf("Port must be specified")
+		}
+
+		for _, v := range sensor.Cfgs {
+			if v.Port == ftp.Port {
+				return cfg, fmt.Errorf("Port is already assigned to another service : %w", err)
+			}
+		}
+
+		cfg.Service = ftp
+		cfg.SensorID = sensor.ID
+		cfg.Type = stype
+		cfg.Port = ftp.Port
 
 	default:
 		return cfg, fmt.Errorf("Unable to find service type")

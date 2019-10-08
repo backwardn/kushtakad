@@ -194,7 +194,7 @@ func (hc *Hub) findService(conn net.Conn) (*ServiceMap, net.Conn, error) {
 			continue
 		}
 
-		log.Debugf("findService %s", sc)
+		log.Debugf("findService %v", sc)
 		serviceCandidates = sc
 	}
 

@@ -130,6 +130,7 @@
     </div>
 
     {{ template "admin/modals/telnet_create" . }}
+    {{ template "admin/modals/ftp_create" . }}
 
 </div>
 
@@ -187,7 +188,19 @@
     function post(type) {
         if (type == "telnet") {
             postTelnet(type);
+        } else if (type == "ftp") {
+            postFtp(type);
         }
+    }
+
+    function postFtp(type) {
+        var sid = parseInt(document.getElementById("sensor_id").value);
+        var port = parseInt(document.getElementById("ftp-port").value);
+        var el = document.getElementById("ftp-emulate");
+        var emulate = el.options[el.selectedIndex].value;
+        var url = uri + sid + "/type/ftp";
+        var data = {sensor_id: sid , type: type, port: port, emulate: emulate};
+        postData(data, url, type);
     }
 
     function postTelnet(type) {
@@ -212,6 +225,30 @@
             </tr>
         `;
         $('#service-table > tbody:last-child').append(tmpl);
+    }
+
+    function resp(response, type) {
+        if (type === "telnet") {
+            respTelnet(response);
+        } else if (type === "ftp") {
+            respFtp(response);
+        }
+    }
+
+    function respFtp(resp) {
+        modalType = "ftp-modal"; 
+        var modalElement = document.getElementById(modalType);
+        var instance = M.Modal.getInstance(modalElement);
+
+        if (resp.Status === "success") {
+            document.getElementById("ftp-port").value = "";
+            document.getElementById("ftp-emulate").selectedIndex = 0; 
+            addServiceRow(resp.Service);
+            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            instance.close();
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
+        }
     }
 
     function respTelnet(resp) {
@@ -243,7 +280,7 @@
             'Content-Type': 'application/json'
         }
         }).then(res => res.json())
-        .then(response => respTelnet(response))
+        .then(response => resp(response, type))
         .catch(error => errc(error));
     }
 
