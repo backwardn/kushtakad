@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Command interface {
@@ -222,7 +223,7 @@ func (cmd commandCwd) RequireAuth() bool {
 }
 
 func (cmd commandCwd) Execute(conn *Conn, param string) {
-	log.Debugf("%s", param)
+	log.Debugf("commandCwd %s", param)
 	err := conn.driver.ChangeDir(param)
 	path := conn.driver.CurDir()
 	if err == nil {
@@ -343,7 +344,9 @@ func (cmd commandEpsv) Execute(conn *Conn, param string) {
 
 // commandList responds to the LIST FTP command. It allows the client to retrieve
 // a detailed listing of the contents of a directory.
-type commandList struct{}
+type commandList struct {
+	mu sync.Mutex
+}
 
 func (cmd commandList) IsExtend() bool {
 	return false
@@ -358,6 +361,8 @@ func (cmd commandList) RequireAuth() bool {
 }
 
 func (cmd commandList) Execute(conn *Conn, param string) {
+	cmd.mu.Lock()
+	defer cmd.mu.Unlock()
 	conn.writeMessage(150, "Opening ASCII mode data connection for file list")
 	files := conn.driver.ListDir(param)
 	if files == nil {
@@ -370,7 +375,9 @@ func (cmd commandList) Execute(conn *Conn, param string) {
 
 // commandNlst responds to the NLST FTP command. It allows the client to
 // retrieve a list of filenames in the current directory.
-type commandNlst struct{}
+type commandNlst struct {
+	mu sync.Mutex
+}
 
 func (cmd commandNlst) IsExtend() bool {
 	return false
@@ -385,6 +392,8 @@ func (cmd commandNlst) RequireAuth() bool {
 }
 
 func (cmd commandNlst) Execute(conn *Conn, param string) {
+	cmd.mu.Lock()
+	defer cmd.mu.Lock()
 	conn.writeMessage(150, "Opening ASCII mode data connection for file list")
 	files := conn.driver.ListDir(param)
 	if files == nil {
@@ -554,7 +563,7 @@ func (cmd commandPasv) Execute(conn *Conn, param string) {
 		return
 	}
 
-	log.Debugf("PASV: new socket on port: %d", socket.Port)
+	log.Debugf("PASV: new socket on port: %d", socket.Port())
 
 	conn.dataConn = socket
 	p1 := socket.Port() / 256
@@ -961,7 +970,9 @@ func (cmd commandSize) Execute(conn *Conn, param string) {
 		conn.writeMessage(450, fmt.Sprintln("path", param, "not found"))
 		return
 	}
-	conn.writeMessage(213, strconv.Itoa(int(stat.Size())))
+	v := strconv.Itoa(int(stat.Size()))
+	log.Debugf("commandSize %s", v)
+	conn.writeMessage(213, v)
 }
 
 // commandStor responds to the STOR FTP command. It allows the user to upload a

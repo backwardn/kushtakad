@@ -114,6 +114,8 @@ func newPassiveSocket(host string, port int, sessionid string, tlsConfig *tls.Co
 	if err := socket.GoListenAndServe(sessionid); err != nil {
 		return nil, err
 	}
+
+	log.Debugf("newPassiveSocket(host %s, port %d)", socket.Host(), socket.Port())
 	return socket, nil
 }
 

@@ -40,52 +40,66 @@ type ftpStorage struct {
 	storage.Storage
 }
 
-func (s *ftpStorage) FileSystem() (base, serviceroot string) {
+func (s *ftpStorage) FileSystem() (base, serviceroot string, err error) {
 	b, err := s.Get("base")
 	if err != nil {
-		return "", ""
+		return "", "", err
 	}
 	base = string(b)
 
 	sr, err := s.Get("fs_root")
 	if err != nil {
-		return "", ""
+		return "", "", err
 	}
 	serviceroot = string(sr)
 
-	return
+	return base, serviceroot, nil
 }
 
 //Returns a TLS Certificate
 func (s *ftpStorage) Certificate() (*tls.Certificate, error) {
+	var errOut, errIn error
+	var pemkey, pemcert []byte
 
 	keyname := "pemkey"
 	certname := "pemcert"
 
-	pemkey, err := s.Get(keyname)
-	if err != nil {
-		pemkey, err = generateKey()
-		if err != nil {
-			return nil, err
+	pemkey, errOut = s.Get(keyname)
+	if errOut != nil || len(pemkey) == 0 {
+		pemkey, errIn = generateKey()
+		log.Debugf("pemkey %s", pemkey)
+		if errIn != nil {
+			log.Errorf("generateKey %v", errIn)
+			return nil, errIn
 		}
-		if err = s.Set(keyname, pemkey); err != nil {
-			log.Errorf("Could not persist %s: %s", keyname, err.Error())
+
+		errIn = s.Set(keyname, pemkey)
+		if errIn != nil {
+			log.Errorf("generateKey Set() %v", errIn)
+			log.Errorf("Could not persist %s: %s", keyname, errIn.Error())
 		}
 	}
 
-	pemcert, err := s.Get(certname)
-	if err != nil {
-		pemcert, err = generateCert(pemkey)
-		if err != nil {
-			return nil, err
+	pemcert, errOut = s.Get(certname)
+	if errOut != nil || len(pemcert) == 0 {
+		pemcert, errIn = generateCert(pemkey)
+		log.Debugf("pemcert %s", pemcert)
+		if errIn != nil {
+			log.Errorf("generateCert %v", errIn)
+			return nil, errIn
 		}
-		if err = s.Set(certname, pemcert); err != nil {
-			log.Errorf("Could not persist %s: %s", certname, err.Error())
+
+		errIn = s.Set(certname, pemcert)
+		if errIn != nil {
+			log.Errorf("generateCert Set() %v", errIn)
+			log.Errorf("Could not persist %s: %s", certname, errIn.Error())
 		}
 	}
 
+	log.Debugf("key %s cert %s", pemkey, pemkey)
 	tlscert, err := tls.X509KeyPair(pemcert, pemkey)
 	if err != nil {
+		log.Errorf("tls.X509KeyPair() %v", err)
 		return nil, err
 	}
 

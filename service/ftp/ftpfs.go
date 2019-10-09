@@ -44,9 +44,14 @@ func (ftp *Fs) Stat(path string) (os.FileInfo, error) {
 	return info, nil
 }
 
+/*
+I don't know why this is here, this caused an recursive loop
+leaving for now to remind myself
 func (ftp *Fs) ChangeDir(path string) error {
 	return ftp.ChangeDir(path)
+	//return nil
 }
+*/
 
 func (ftp *Fs) ListDir(path string) []os.FileInfo {
 	p := ftp.RealPath(path)

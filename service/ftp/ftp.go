@@ -35,11 +35,13 @@ func (f *FtpService) ConfigureAndRun() {
 	if err != nil {
 		log.Errorf("FTP: Could not initialize storage. %s", err.Error())
 	}
+	log.Debug("getStorage()")
 
 	cert, err := store.Certificate()
 	if err != nil {
 		log.Errorf("TLS error: %s", err.Error())
 	}
+	log.Debug("Certificate()")
 
 	f.recv = make(chan string)
 
@@ -60,12 +62,17 @@ func (f *FtpService) ConfigureAndRun() {
 
 	f.server.tlsConfig = simpleTLSConfig(cert)
 	if f.server.tlsConfig != nil {
-		//s.server.TLS = true
-		f.server.ExplicitFTPS = true
+		f.server.TLS = false
+		f.server.ExplicitFTPS = false
 	}
 
-	base, root := store.FileSystem()
+	base, root, err := store.FileSystem()
+	if err != nil {
+		log.Criticalf("Filesystem() failed: %v", err)
+	}
+
 	if base == "" {
+		log.Debugf("FsRoot err : %s", f.FsRoot)
 		base = f.FsRoot
 	}
 
@@ -74,6 +81,7 @@ func (f *FtpService) ConfigureAndRun() {
 		log.Debugf("FTP Filesystem error: %s", err.Error())
 	}
 
+	log.Debugf("FsRoot : %s", f.FsRoot)
 	log.Debugf("FileSystem rooted at %s", fs.RealPath("/"))
 
 	f.driver = NewFileDriver(fs)
@@ -114,7 +122,10 @@ func FTP() *FtpService {
 		s.server.ExplicitFTPS = true
 	}
 
-	base, root := store.FileSystem()
+	base, root, err := store.FileSystem()
+	if err != nil {
+		log.Critical(err)
+	}
 	if base == "" {
 		base = s.FsRoot
 	}

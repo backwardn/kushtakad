@@ -14,11 +14,8 @@
 package storage
 
 import (
-	"log"
-
 	"github.com/asdine/storm"
 	"github.com/kushtaka/kushtakad/state"
-	"go.etcd.io/bbolt"
 )
 
 type storage interface {
@@ -33,23 +30,27 @@ var dataDir string
 
 // SetDataDir
 func SetDataDir(s string) {
+	var err error
 	if db != nil {
 		return
 	}
 
 	dataDir = s
-	db = MustDB()
+	db, err = MustDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // MustDB
-func MustDB() *storm.DB {
+func MustDB() (*storm.DB, error) {
 	db, err := storm.Open(state.DbSensorLocation())
 	if err != nil {
 		log.Fatalf("Failed to open database : %s", err)
-		return nil
+		return nil, err
 	}
 
-	return db
+	return db, nil
 }
 
 // Storage interface
@@ -66,8 +67,13 @@ func Namespace(namespace string) (*stormStorage, error) {
 
 	prefix[len(namespace)] = byte('.')
 
+	db, err := MustDB()
+	if err != nil {
+		return nil, err
+	}
+
 	return &stormStorage{
-		db: MustDB(),
+		db: db,
 		ns: prefix,
 	}, nil
 }
@@ -79,38 +85,69 @@ type stormStorage struct {
 }
 
 func (s *stormStorage) Get(key string) ([]byte, error) {
+	log.Debug("stormStorage Get()")
 
 	val := []byte{}
 
 	k := append(s.ns, key...)
 
-	err := s.db.Bolt.View(func(tx *bbolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(bktName))
-		if err != nil {
-			return err
-		}
-		val = bucket.Get([]byte(k))
-		return nil
-	})
+	tx, err := s.db.Bolt.Begin(true)
+	if err != nil {
+		log.Debugf("Unable to begin tx %v", err)
+		return val, err
+	}
 
+	bkt, err := tx.CreateBucketIfNotExists([]byte(bktName))
+	if err != nil {
+		log.Debugf("Unable to create bucket using tx %v", err)
+		tx.Rollback()
+		return val, err
+	}
+
+	val = bkt.Get([]byte(k))
+
+	err = tx.Commit()
+	if err != nil {
+		log.Debugf("Unable to commit tx %v", err)
+		tx.Rollback()
+		return val, err
+	}
 	return val, err
 }
 
 func (s *stormStorage) Set(key string, data []byte) error {
+	log.Debug("stormStorage Begin Set")
+	log.Debugf("Set key = %s", key)
 	k := append(s.ns, key...)
 
-	err := s.db.Bolt.Update(func(tx *bbolt.Tx) error {
-		dbx := s.db.WithTransaction(tx)
-		err := dbx.Set(bktName, k, data)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
+	tx, err := s.db.Bolt.Begin(true)
 	if err != nil {
+		log.Debugf("Unable to begin tx %v", err)
 		return err
 	}
+
+	bkt, err := tx.CreateBucketIfNotExists([]byte(bktName))
+	if err != nil {
+		log.Debugf("Unable to create bucket using tx %v", err)
+		tx.Rollback()
+		return err
+	}
+
+	err = bkt.Put([]byte(k), data)
+	if err != nil {
+		log.Debugf("Unable to put data into bucket using tx %v", err)
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Debugf("Unable to commit tx %v", err)
+		tx.Rollback()
+		return err
+	}
+
+	log.Debug("stormStorage End Set")
 
 	return nil
 }

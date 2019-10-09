@@ -75,7 +75,7 @@ func (conn *Conn) passiveListenIP() string {
 
 func (conn *Conn) PassivePort() int {
 	if len(conn.server.PassivePorts) > 0 {
-		portRange := strings.Split(conn.server.PassivePorts, "-")
+		portRange := strings.Split("11000-32000", "-")
 
 		if len(portRange) != 2 {
 			log.Debug("empty port")
@@ -85,12 +85,8 @@ func (conn *Conn) PassivePort() int {
 		minPort, _ := strconv.Atoi(strings.TrimSpace(portRange[0]))
 		maxPort, _ := strconv.Atoi(strings.TrimSpace(portRange[1]))
 
-		var port int
-		if minPort != maxPort {
-			port = minPort + mrand.Intn(maxPort-minPort)
-		} else {
-			port = minPort + 1
-		}
+		port := minPort + mrand.Intn(maxPort-minPort)
+		log.Debugf("PassivePort() is returning port %d", port)
 		return port
 	}
 	// let system automatically chose one port
@@ -172,11 +168,9 @@ func (conn *Conn) upgradeToTLS() error {
 func (conn *Conn) receiveLine(line string) {
 
 	//Log received commands in honeytrap log
-	log.Debug("Being receiveLine")
 	// TODO: FIGURE THIS OUT JARED
 	// THIS BLOCKS as if the channel isn't created or something is blocking it WHYYYYYYYYYY?
 	//conn.rcv <- line
-	log.Debug("conn.rcv channel was fed")
 
 	command, param := conn.parseLine(line)
 	cmdObj := commands[strings.ToUpper(command)]

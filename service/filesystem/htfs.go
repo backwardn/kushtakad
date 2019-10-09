@@ -60,7 +60,7 @@ func (f *Htfs) Cwd() string {
 
 func (f *Htfs) ChangeDir(path string) error {
 
-	log.Debugf("%s", path)
+	log.Debugf("HTFS %s", path)
 	rpath := f.RealPath(path)
 
 	d, err := os.Lstat(rpath)
