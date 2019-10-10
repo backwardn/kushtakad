@@ -53,6 +53,17 @@ func MustDB() (*storm.DB, error) {
 	return db, nil
 }
 
+// MustDB
+func MustDBWithName(dbname string) (*storm.DB, error) {
+	db, err := storm.Open(state.DbLocationWithName(dbname))
+	if err != nil {
+		log.Fatalf("Failed to open database : %s", err)
+		return nil, err
+	}
+
+	return db, nil
+}
+
 // Storage interface
 type Storage interface {
 	Get(key string) ([]byte, error)

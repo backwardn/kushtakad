@@ -4,6 +4,10 @@ go 1.13
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/PuerkitoBio/goquery v1.5.0 // indirect
+	github.com/antchfx/htmlquery v1.0.0 // indirect
+	github.com/antchfx/xmlquery v1.0.0 // indirect
+	github.com/antchfx/xpath v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a // indirect
 	github.com/asdine/storm v2.1.2+incompatible
 	github.com/boltdb/bolt v1.3.1
@@ -13,12 +17,17 @@ require (
 	github.com/go-acme/lego v2.7.2+incompatible // indirect
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/gobuffalo/packr/v2 v2.7.1
+	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gocolly/colly v1.2.0 // indirect
 	github.com/google/martian v2.1.0+incompatible
 	github.com/google/uuid v1.1.1
+	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.0
 	github.com/gorilla/websocket v1.4.1
+	github.com/kennygrant/sanitize v1.2.4 // indirect
+	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mholt/certmagic v0.7.3
 	github.com/microcosm-cc/bluemonday v1.0.2
@@ -30,8 +39,10 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/rogpeppe/go-internal v1.5.0 // indirect
 	github.com/rs/xid v1.2.1
+	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/temoto/robotstxt v1.1.1 // indirect
 	github.com/unrolled/render v1.0.1
 	github.com/urfave/negroni v1.0.0
 	github.com/xenolf/lego v2.7.2+incompatible

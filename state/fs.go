@@ -106,21 +106,20 @@ func createFiles(b *packr.Box) error {
 }
 
 func DbLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "DbLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, dataDir, dbFile)
+	return DbLocationWithName(dbFile)
 }
 
 func DbSensorLocation() string {
+	return DbLocationWithName(dbSensor)
+}
+
+func DbLocationWithName(dbname string) string {
 	cwd, err := os.Getwd()
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "DbLocation() unable to detect current working directory"))
+		log.Fatal(errors.Wrap(err, "DbLocationWithName() unable to detect current working directory"))
 	}
 
-	return path.Join(cwd, dataDir, dbSensor)
+	return path.Join(cwd, dataDir, dbname)
 }
 
 func SessionLocation() string {

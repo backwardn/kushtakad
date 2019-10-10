@@ -1,16 +1,6 @@
-package main
+package webserver
 
-import (
-	"log"
-	"net/http"
-	"strings"
-
-	"github.com/asdine/storm"
-	"github.com/gorilla/mux"
-	"github.com/urfave/negroni"
-)
-
-var db *storm.DB
+import "net/http"
 
 type Res struct {
 	ID         int64  `storm:"id,increment"`
@@ -28,6 +18,17 @@ type Redirect struct {
 	GotoURL    string `storm:"index"`
 	Headers    http.Header
 }
+
+/*
+import (
+	"net/http"
+	"strings"
+
+	"github.com/asdine/storm"
+	"github.com/gorilla/mux"
+	"github.com/urfave/negroni"
+)
+var db *storm.DB
 
 func main() {
 	var err error
@@ -111,3 +112,4 @@ func replaceURL(body []byte) []byte {
 	s = strings.ReplaceAll(s, "KUSHTAKA_URL_REPLACE", "http://localhost:3002")
 	return []byte(s)
 }
+*/
