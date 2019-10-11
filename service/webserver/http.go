@@ -17,6 +17,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -46,9 +47,10 @@ type HttpServiceConfig struct {
 }
 
 type HttpService struct {
-	SensorID int64  `json:"sensor_id"`
-	Port     int    `json:"port"`
-	Type     string `json:"type"`
+	SensorID             int64  `json:"sensor_id"`
+	Port                 int    `json:"port"`
+	Type                 string `json:"type"`
+	HostNameOrExternalIp string `json:"hostname_or_external_ip"`
 
 	Host   string
 	ApiKey string
@@ -133,10 +135,12 @@ func (s *HttpService) Handle(ctx context.Context, conn net.Conn) error {
 		u := req.URL.RequestURI()
 		s.db.One("URL", u, &res)
 		headers := http.Header{}
+		host := fmt.Sprintf("%s:%d", s.HostNameOrExternalIp, s.Port)
+
 		for k, v := range res.Headers {
 			var s string
 			for _, v1 := range v {
-				v1 = strings.ReplaceAll(v1, "KUSHTAKA_URL_REPLACE", "localhost:3002")
+				v1 = strings.ReplaceAll(v1, "KUSHTAKA_URL_REPLACE", host)
 				v1 = strings.ReplaceAll(v1, "https", "http")
 				s = s + v1
 			}
@@ -148,17 +152,6 @@ func (s *HttpService) Handle(ctx context.Context, conn net.Conn) error {
 				headers.Set(k, s)
 			}
 		}
-
-		/*
-			if len(res.Body) == 0 {
-				w.WriteHeader(404)
-				return
-			}
-
-			w.WriteHeader(200)
-			w.Write(replaceURL(res.Body))
-			return
-		*/
 
 		resp := http.Response{
 			Body:       ioutil.NopCloser(bytes.NewReader(res.Body)),

@@ -16,6 +16,7 @@ type View struct {
 	Links          *Links
 	Forms          *Forms
 	LETests        []models.LETest
+	Clones         []models.Clone
 	Team           *models.Team
 	Teams          []models.Team
 	Token          *models.Token
@@ -43,6 +44,7 @@ type Links struct {
 	Teams     string
 	Https     string
 	Smtp      string
+	Clones    string
 }
 
 func NewView() *View {
@@ -53,10 +55,12 @@ func NewView() *View {
 	var crumbs []*Crumb
 	var events []events.EventManager
 	var letests []models.LETest
+	var clones []models.Clone
 	return &View{
 		LETests:      letests,
 		FlashFail:    ff,
 		FlashSuccess: fs,
+		Clones:       clones,
 		Teams:        tm,
 		Events:       events,
 		Users:        users,

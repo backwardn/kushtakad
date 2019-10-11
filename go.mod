@@ -18,16 +18,16 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gocolly/colly v1.2.0 // indirect
+	github.com/gocolly/colly v1.2.0
 	github.com/google/martian v2.1.0+incompatible
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/css v1.0.0 // indirect
+	github.com/gorilla/css v1.0.0
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.0
 	github.com/gorilla/websocket v1.4.1
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3 // indirect
+	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mholt/certmagic v0.7.3
 	github.com/microcosm-cc/bluemonday v1.0.2

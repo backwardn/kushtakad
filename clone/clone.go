@@ -1,10 +1,8 @@
-package main
+package clone
 
 import (
 	"errors"
-	"flag"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -35,7 +33,15 @@ func needToReplace(s string) {
 	replaceDomain.mu.Unlock()
 }
 
-func forceReplace() {
+/*
+	db, err = storm.Open("test.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+*/
+
+func forceReplace() error {
 	replaceDomain.mu.Lock()
 	var all []Res
 	db.All(&all)
@@ -46,17 +52,18 @@ func forceReplace() {
 			/*
 				for _, headers := range res.Headers {
 					for _, header := range headers {
-						log.Println(header, strings.ReplaceAll(header, uri, ""))
+						log.Debug(header, strings.ReplaceAll(header, uri, ""))
 					}
 				}
 			*/
 		}
 		err := db.Update(&res)
 		if err != nil {
-			log.Fatal("Unable to update forceReplace()", err)
+			return err
 		}
 	}
 	replaceDomain.mu.Unlock()
+	return nil
 }
 
 //var DOMAIN = "www.bend.k12.or.us"
@@ -67,9 +74,6 @@ func forceReplace() {
 //var DOMAIN = "www.seattleschools.org"
 //var SCHEME = "https://"
 //var DOMAIN = "www.opsecedu.com"
-
-var URI, SCHEME, DOMAIN, PRIMARYLINK string
-var DEPTH int
 
 type ForceAssets struct {
 	mu     *sync.Mutex
@@ -93,23 +97,24 @@ type Redirect struct {
 	Headers    http.Header
 }
 
-func main() {
+func Run(user_submitted_uri string, user_submitted_depth int, db *storm.DB) error {
+	var URI, SCHEME, DOMAIN, PRIMARYLINK string
+	var DEPTH int
 
 	var err error
-	flag.StringVar(&URI, "uri", "", "you must specify a uri (https://example.com/test) that you would like kushtaka to mimic")
-	flag.IntVar(&DEPTH, "depth", 1, "the default depth that kushtaka tries to crawl is set to 1, increase it should you want more assets to be mimic'd")
-	flag.Parse()
+	URI = user_submitted_uri
+	DEPTH = user_submitted_depth
 
 	if len(URI) == 0 {
-		log.Fatal("Must specify URI to scrape")
+		errors.New("Must specify URI to scrape")
 	}
 
 	uri, err := url.Parse(URI)
 	if err != nil {
-		log.Fatal("Unable to parse URI to scrape", err)
+		return err
 	}
 
-	log.Println(uri.Scheme)
+	log.Debug(uri.Scheme)
 
 	if !strings.Contains(uri.Scheme, "https") {
 		log.Fatal("URI doesn't have a scheme (http/https)")
@@ -130,11 +135,6 @@ func main() {
 
 	fa = &ForceAssets{mu: &sync.Mutex{}, Assets: make(map[string]string)}
 	replaceDomain = &ForceAssets{mu: &sync.Mutex{}, Assets: make(map[string]string)}
-	db, err = storm.Open("test.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
 
 	// Instantiate default collector
 	c := colly.NewCollector(
@@ -174,7 +174,7 @@ func main() {
 		}
 		newsrc, err := absUrl(src, e.Request.URL)
 		if err != nil {
-			log.Println("can't download link[href]...", err)
+			log.Debug("can't download link[href]...", err)
 			return
 		}
 		needToDownload(newsrc.String())
@@ -184,12 +184,12 @@ func main() {
 		src := e.Attr("src")
 		parsesrc, err := url.Parse(src)
 		if err != nil {
-			log.Println("can't download script[src]...", err)
+			log.Debug("can't download script[src]...", err)
 			return
 		}
 		newsrc, err := absUrl(parsesrc.String(), e.Request.URL)
 		if err != nil {
-			log.Println("can't download script[src]...", err)
+			log.Debug("can't download script[src]...", err)
 			return
 		}
 		needToDownload(newsrc.String())
@@ -200,7 +200,7 @@ func main() {
 		e.Request.Visit(src)
 		newsrc, err := absUrl(src, e.Request.URL)
 		if err != nil {
-			log.Println("can't download img[src]...", err)
+			log.Debug("can't download img[src]...", err)
 			return
 		}
 		needToDownload(newsrc.String())
@@ -212,7 +212,7 @@ func main() {
 		for _, src := range imset {
 			newsrc, err := absUrl(src.URL, e.Request.URL)
 			if err != nil {
-				log.Println("can't download img[src]...", err)
+				log.Debug("can't download img[src]...", err)
 				return
 			}
 			needToDownload(newsrc.String())
@@ -234,10 +234,10 @@ func main() {
 		headers := replaceHeader(*r.Headers)
 		body = r.Body
 		contentType := http.DetectContentType(body)
-		log.Println("OnReponse() ", u, contentType, r.Request.Depth)
+		log.Debug("OnReponse() ", u, contentType, r.Request.Depth)
 
 		if len(r.Body) < 15 {
-			log.Println("Body is empty moving on...")
+			log.Debug("Body is empty moving on...")
 			return
 		}
 
@@ -284,21 +284,31 @@ func main() {
 	c.RedirectHandler = RedirectHandler
 	err = c.Visit(SCHEME + DOMAIN + PRIMARYLINK)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	c.Wait()
-	downloadAssets()
-	forceReplace()
+
+	err = downloadAssets()
+	if err != nil {
+		return err
+	}
+
+	err = forceReplace()
+	if err != nil {
+		return err
+	}
+
+	return nil
 
 }
 
-func downloadAssets() {
+func downloadAssets() error {
 	fa.mu.Lock()
 	for _, v := range fa.Assets {
 		resp, err := http.Get(v)
 		if err != nil {
-			log.Println(err)
+			log.Debug(err)
 			continue
 		}
 		defer resp.Body.Close()
@@ -306,7 +316,7 @@ func downloadAssets() {
 		if resp.StatusCode == 200 {
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				log.Fatal("unable to read body", err)
+				return err
 			}
 			uri := resp.Request.URL.ResolveReference(resp.Request.URL)
 			u := uri.RequestURI()
@@ -322,7 +332,7 @@ func downloadAssets() {
 			search := Res{}
 			tx, err := db.Begin(true)
 			if err != nil {
-				log.Fatal("Unable to Begin() Tx", err)
+				return err
 			}
 			defer tx.Rollback()
 
@@ -333,7 +343,7 @@ func downloadAssets() {
 				res.ID = search.ID
 				err := tx.Update(&res)
 				if err != nil {
-					log.Fatal("Unable to Update() Tx", err)
+					return err
 				}
 			}
 
@@ -342,18 +352,19 @@ func downloadAssets() {
 			h := resp.Request.URL.Hostname()
 			sh := resp.Request.URL.Scheme
 			uril := sh + "://" + h
-			log.Println("downloading Asset: ", uril, v)
+			log.Debug("downloading Asset: ", uril, v)
 			needToReplace(uril)
 
 		}
 	}
 	fa.mu.Unlock()
+	return nil
 }
 
 // SetRedirectHandler instructs the Collector to allow multiple downloads of the same URL
 func RedirectHandler(req *http.Request, via []*http.Request) error {
 	redirUrl := "/" + strings.Trim(req.Referer(), SCHEME+DOMAIN)
-	log.Println("REDIRECT", redirUrl)
+	log.Debug("REDIRECT", redirUrl)
 
 	res := Redirect{
 		Headers:    replaceHeader(req.Response.Header),
@@ -461,12 +472,12 @@ func createCssLookup(css string, surl *url.URL) map[string]string {
 			// copy the data from the token
 			uri, err := absUrl(tok.Value, surl)
 			if err != nil {
-				log.Println(err)
+				log.Debug(err)
 				break
 			}
 
 			needToDownload(uri.String())
-			log.Println(uri.String())
+			log.Debug(uri.String())
 			lookup[tok.Value] = "url(" + uri.RequestURI() + ")"
 
 		}
@@ -477,9 +488,9 @@ func createCssLookup(css string, surl *url.URL) map[string]string {
 
 /*
 func defineRootFolder(url string) string {
-	log.Println("defineRootFolder:", url)
+	log.Debug("defineRootFolder:", url)
 	dir, file := filepath.Split(url)
-	log.Println("defineRootFolder:", dir, " file: ", file)
+	log.Debug("defineRootFolder:", dir, " file: ", file)
 	return dir
 }
 */
@@ -491,10 +502,10 @@ func cssReplaceUrl(css string, url *url.URL) string {
 
 	m := createCssLookup(css, url)
 	for orig, change := range m {
-		log.Println("cssReplaceUrl()")
-		log.Println("\turl", url)
-		log.Println("\torig", orig)
-		log.Println("\tchange", change)
+		log.Debug("cssReplaceUrl()")
+		log.Debug("\turl", url)
+		log.Debug("\torig", orig)
+		log.Debug("\tchange", change)
 		css = strings.ReplaceAll(css, orig, change)
 	}
 
