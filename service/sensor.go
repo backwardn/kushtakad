@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/asdine/storm"
 	"github.com/fatih/color"
 	"github.com/kushtaka/kushtakad/listener"
 )
@@ -102,7 +103,7 @@ func (h *Hub) handle(c net.Conn) {
 	newConn = TimeoutConn(newConn, time.Second*30)
 
 	ctx := context.Background()
-	if err := sm.Service.Handle(ctx, newConn); err != nil {
+	if err := sm.Service.Handle(ctx, newConn, sm.DB); err != nil {
 		log.Errorf(color.RedString("Error handling service: %s: %s", sm.SensorName, err.Error()))
 	}
 }
@@ -123,6 +124,7 @@ type ServiceMap struct {
 	SensorName string `json:"sensor_name"`
 	Type       string `json:"type"`
 	Port       string `json:"port`
+	DB         *storm.DB
 }
 
 type TmpMap struct {
@@ -134,7 +136,7 @@ type TmpMap struct {
 }
 
 type Servicer interface {
-	Handle(context.Context, net.Conn) error
+	Handle(context.Context, net.Conn, *storm.DB) error
 	SetApiKey(k string)
 	SetHost(h string)
 }

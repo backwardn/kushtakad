@@ -25,19 +25,11 @@ import (
 	"strings"
 
 	"github.com/asdine/storm"
-	"github.com/kushtaka/kushtakad/storage"
 )
 
 // Http is a placeholder
-func HTTP(dbname string) (*HttpService, error) {
-	db, err := storage.MustDBWithName(dbname)
-	if err != nil {
-		return nil, err
-	}
-
-	s := &HttpService{
-		db: db,
-	}
+func HTTP() (*HttpService, error) {
+	s := &HttpService{}
 
 	return s, nil
 }
@@ -48,6 +40,8 @@ type HttpServiceConfig struct {
 
 type HttpService struct {
 	SensorID             int64  `json:"sensor_id"`
+	CloneID              int64  `json:"clone_id"`
+	FQDN                 string `json:"fqdn"`
 	Port                 int    `json:"port"`
 	Type                 string `json:"type"`
 	HostNameOrExternalIp string `json:"hostname_or_external_ip"`
@@ -55,8 +49,19 @@ type HttpService struct {
 	Host   string
 	ApiKey string
 
-	db *storm.DB
 	HttpServiceConfig
+}
+
+func (s HttpService) SetHost(h string) {
+	s.Host = h
+}
+
+func (s HttpService) SetApiKey(k string) {
+	s.ApiKey = k
+}
+
+func (s HttpService) HasDb() bool {
+	return true
 }
 
 func (s *HttpService) CanHandle(payload []byte) bool {
@@ -83,8 +88,7 @@ func (s *HttpService) CanHandle(payload []byte) bool {
 	return false
 }
 
-func (s *HttpService) Handle(ctx context.Context, conn net.Conn) error {
-	//id := xid.New()
+func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) error {
 
 	for {
 		br := bufio.NewReader(conn)
@@ -98,18 +102,16 @@ func (s *HttpService) Handle(ctx context.Context, conn net.Conn) error {
 
 		defer req.Body.Close()
 
-		/*
-			body := make([]byte, 1024)
+		body := make([]byte, 1024)
 
-			n, err := req.Body.Read(body)
-			if err == io.EOF {
-			} else if err != nil {
-				return err
-			}
+		n, err := req.Body.Read(body)
+		if err == io.EOF {
+		} else if err != nil {
+			return err
+		}
 
-			body = body[:n]
-			io.Copy(ioutil.Discard, req.Body)
-		*/
+		body = body[:n]
+		io.Copy(ioutil.Discard, req.Body)
 
 		//var redir Redirect
 
@@ -129,13 +131,21 @@ func (s *HttpService) Handle(ctx context.Context, conn net.Conn) error {
 				w.WriteHeader(redir.StatusCode)
 				return
 			}
-		*/
 
+		*/
 		var res Res
 		u := req.URL.RequestURI()
-		s.db.One("URL", u, &res)
+		log.Debug(u)
+		err = db.One("URL", u, &res)
+		if err != nil {
+			log.Debug(err)
+		}
+
+		res.Body = replaceURL(res.Body)
+
 		headers := http.Header{}
-		host := fmt.Sprintf("%s:%d", s.HostNameOrExternalIp, s.Port)
+		//host := fmt.Sprintf("%s:%d", s.HostNameOrExternalIp, s.Port)
+		host := fmt.Sprintf("%s:%d", "localhost", 5555)
 
 		for k, v := range res.Headers {
 			var s string
@@ -154,14 +164,15 @@ func (s *HttpService) Handle(ctx context.Context, conn net.Conn) error {
 		}
 
 		resp := http.Response{
-			Body:       ioutil.NopCloser(bytes.NewReader(res.Body)),
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Proto:      req.Proto,
-			ProtoMajor: req.ProtoMajor,
-			ProtoMinor: req.ProtoMinor,
-			Request:    req,
-			Header:     headers,
+			ContentLength: int64(len(res.Body)),
+			Body:          ioutil.NopCloser(bytes.NewReader(res.Body)),
+			StatusCode:    http.StatusOK,
+			Status:        http.StatusText(http.StatusOK),
+			Proto:         req.Proto,
+			ProtoMajor:    req.ProtoMajor,
+			ProtoMinor:    req.ProtoMinor,
+			Request:       req,
+			Header:        headers,
 		}
 
 		if err := resp.Write(conn); err != nil {
@@ -169,3 +180,62 @@ func (s *HttpService) Handle(ctx context.Context, conn net.Conn) error {
 		}
 	}
 }
+
+/*
+func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) error {
+
+	for {
+		br := bufio.NewReader(conn)
+
+		req, err := http.ReadRequest(br)
+		if err == io.EOF {
+			return nil
+		} else if err != nil {
+			return err
+		}
+
+		defer req.Body.Close()
+
+		body := make([]byte, 1024)
+
+		n, err := req.Body.Read(body)
+		if err == io.EOF {
+		} else if err != nil {
+			return err
+		}
+
+		body = body[:n]
+
+		io.Copy(ioutil.Discard, req.Body)
+
+		var res Res
+		u := req.URL.RequestURI()
+		log.Debug(u)
+		err = db.One("URL", u, &res)
+		if err != nil {
+			log.Debug(err)
+		}
+		//msg := "<html><head></head><body><p>hello</p></body></html>"
+		msg := "asdf"
+
+		resp := http.Response{
+			ContentLength: int64(len(msg)),
+			Body:          ioutil.NopCloser(bytes.NewReader([]byte(msg))),
+			StatusCode:    http.StatusOK,
+			Status:        http.StatusText(http.StatusOK),
+			Proto:         req.Proto,
+			ProtoMajor:    req.ProtoMajor,
+			ProtoMinor:    req.ProtoMinor,
+			Request:       req,
+			Header: http.Header{
+				"Server": []string{s.Server},
+			},
+		}
+
+		if err := resp.Write(conn); err != nil {
+			return err
+		}
+	}
+}
+
+*/

@@ -15,6 +15,7 @@ import (
 	"github.com/kushtaka/kushtakad/service"
 	"github.com/kushtaka/kushtakad/service/ftp"
 	"github.com/kushtaka/kushtakad/service/telnet"
+	"github.com/kushtaka/kushtakad/service/webserver"
 	"github.com/kushtaka/kushtakad/state"
 )
 
@@ -84,6 +85,20 @@ func ServicesConfig(s *models.Sensor, db *storm.DB) ([]*service.ServiceMap, erro
 				SensorName: s.Name,
 				Type:       v.Type,
 				Port:       strconv.Itoa(v.Port),
+			}
+
+			svm = append(svm, sm)
+		case "http":
+			var http webserver.HttpService
+			err := mapstructure.Decode(v.Service, &http)
+			if err != nil {
+				return nil, err
+			}
+
+			sm := &service.ServiceMap{
+				Service: http,
+				Type:    v.Type,
+				Port:    strconv.Itoa(v.Port),
 			}
 
 			svm = append(svm, sm)

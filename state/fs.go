@@ -16,14 +16,15 @@ const (
 	dataDir     = "data"
 	imagesDir   = "images"
 	sessionsDir = "sessions"
-	acme        = "acme"
+	clonesDir   = "clones"
+	acmeDir     = "acme"
 	acmeProd    = "prod"
 	acmeTest    = "test"
 	dbFile      = "kushtaka.db"
 	dbSensor    = "sensor.db"
 )
 
-var cwd, themePath, imagesPath, sessionsPath, acmeProdPath, acmeTestPath string
+var cwd, themePath, imagesPath, sessionsPath, acmeProdPath, acmeTestPath, clonesPath string
 
 // SetupFileStructure makes sure the files on the file system are in the correct state
 // if they are not, the application must fail
@@ -51,7 +52,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	acmeProdPath = path.Join(cwd, dataDir, acme, acmeProd)
+	acmeProdPath = path.Join(cwd, dataDir, acmeDir, acmeProd)
 	if _, err := os.Stat(acmeProdPath); os.IsNotExist(err) {
 		err = os.MkdirAll(acmeProdPath, 0744)
 		if err != nil {
@@ -59,11 +60,19 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	acmeTestPath = path.Join(cwd, dataDir, acme, acmeTest)
+	acmeTestPath = path.Join(cwd, dataDir, acmeDir, acmeTest)
 	if _, err := os.Stat(acmeTestPath); os.IsNotExist(err) {
 		err = os.MkdirAll(acmeTestPath, 0744)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", acmeTestPath))
+		}
+	}
+
+	clonesPath = path.Join(cwd, dataDir, clonesDir)
+	if _, err := os.Stat(clonesPath); os.IsNotExist(err) {
+		err = os.MkdirAll(clonesPath, 0744)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", clonesPath))
 		}
 	}
 
@@ -122,6 +131,19 @@ func DbLocationWithName(dbname string) string {
 	return path.Join(cwd, dataDir, dbname)
 }
 
+func DbWithLocationWithName(location, dbname string) string {
+	return path.Join(location, dbname)
+}
+
+func ClonesLocation() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "ClonesLocation() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, dataDir, clonesDir)
+}
+
 func SessionLocation() string {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -137,7 +159,7 @@ func AcmeProdLocation() string {
 		log.Fatal(errors.Wrap(err, "AcmeProdLocation() unable to detect current working directory"))
 	}
 
-	return path.Join(cwd, dataDir, acme, acmeProd)
+	return path.Join(cwd, dataDir, acmeDir, acmeProd)
 }
 
 func AcmeTestLocation() string {
@@ -146,7 +168,7 @@ func AcmeTestLocation() string {
 		log.Fatal(errors.Wrap(err, "AcmeTestLocation() unable to detect current working directory"))
 	}
 
-	return path.Join(cwd, dataDir, acme, acmeTest)
+	return path.Join(cwd, dataDir, acmeDir, acmeTest)
 }
 
 func DataDirLocation() string {

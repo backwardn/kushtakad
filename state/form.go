@@ -12,6 +12,7 @@ type Forms struct {
 	Sensor     *models.Sensor
 	Service    *models.Service
 	User       *models.User
+	Clone      *models.Clone
 }
 
 func NewForms() *Forms {
@@ -24,5 +25,6 @@ func NewForms() *Forms {
 		Token:      &models.Token{},
 		Sensor:     &models.Sensor{},
 		User:       &models.User{},
+		Clone:      &models.Clone{},
 	}
 }

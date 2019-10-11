@@ -1,6 +1,9 @@
 package webserver
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 type Res struct {
 	ID         int64  `storm:"id,increment"`
@@ -100,6 +103,7 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(replaceURL(res.Body))
 	return
 }
+*/
 
 func replaceURL(body []byte) []byte {
 	s := string(body)
@@ -109,7 +113,6 @@ func replaceURL(body []byte) []byte {
 	// then replace this
 	s = strings.ReplaceAll(s, "http://KUSHTAKA_URL_REPLACE", "KUSHTAKA_URL_REPLACE")
 	// now having normalized the links, replace them all with localhost
-	s = strings.ReplaceAll(s, "KUSHTAKA_URL_REPLACE", "http://localhost:3002")
+	s = strings.ReplaceAll(s, "KUSHTAKA_URL_REPLACE", "http://localhost:5555")
 	return []byte(s)
 }
-*/

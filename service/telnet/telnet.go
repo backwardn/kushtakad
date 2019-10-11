@@ -19,6 +19,7 @@ import (
 	"io"
 	"net"
 
+	"github.com/asdine/storm"
 	"github.com/kushtaka/kushtakad/events"
 	"github.com/op/go-logging"
 	"github.com/rs/xid"
@@ -75,7 +76,7 @@ func (s TelnetService) SetApiKey(k string) {
 	s.ApiKey = k
 }
 
-func (s TelnetService) Handle(ctx context.Context, conn net.Conn) error {
+func (s TelnetService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) error {
 	defer conn.Close()
 
 	id := xid.New()

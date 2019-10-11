@@ -11,6 +11,9 @@ import (
 
 	"github.com/kushtaka/kushtakad/service/ftp"
 	"github.com/kushtaka/kushtakad/service/telnet"
+	"github.com/kushtaka/kushtakad/service/webserver"
+	"github.com/kushtaka/kushtakad/state"
+	"github.com/kushtaka/kushtakad/storage"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -157,6 +160,31 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 			sm.Service = ftp
 			svm = append(svm, sm)
 			log.Infof("Did it decode? %v", ftp)
+		case "http":
+			sm := &ServiceMap{
+				Type:       v.Type,
+				Port:       v.Port,
+				SensorName: v.SensorName,
+			}
+
+			var httpw webserver.HttpService
+			err := mapstructure.Decode(v.Service, &httpw)
+			if err != nil {
+				return nil, err
+			}
+
+			db, err := storage.MustDBWithLocationAndName(state.ClonesLocation(), "www.bend.k12.or.us")
+			if err != nil {
+				log.Fatal(err)
+				return nil, err
+			}
+
+			httpw.SetHost(host)
+			httpw.SetApiKey(key)
+			sm.Service = httpw
+			sm.DB = db
+			svm = append(svm, sm)
+			log.Infof("Did the service decode? %v", httpw)
 		}
 	}
 

@@ -33,14 +33,6 @@ func needToReplace(s string) {
 	replaceDomain.mu.Unlock()
 }
 
-/*
-	db, err = storm.Open("test.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-*/
-
 func forceReplace() error {
 	replaceDomain.mu.Lock()
 	var all []Res
@@ -97,8 +89,11 @@ type Redirect struct {
 	Headers    http.Header
 }
 
-func Run(user_submitted_uri string, user_submitted_depth int, db *storm.DB) error {
-	var URI, SCHEME, DOMAIN, PRIMARYLINK string
+var URI, SCHEME, DOMAIN, PRIMARYLINK string
+
+func Run(user_submitted_uri string, user_submitted_depth int, origdb *storm.DB) error {
+	log.Debug("begin clone")
+	db = origdb
 	var DEPTH int
 
 	var err error
@@ -114,7 +109,7 @@ func Run(user_submitted_uri string, user_submitted_depth int, db *storm.DB) erro
 		return err
 	}
 
-	log.Debug(uri.Scheme)
+	log.Debug(uri.Scheme, uri.Hostname())
 
 	if !strings.Contains(uri.Scheme, "https") {
 		log.Fatal("URI doesn't have a scheme (http/https)")
@@ -133,6 +128,8 @@ func Run(user_submitted_uri string, user_submitted_depth int, db *storm.DB) erro
 		PRIMARYLINK = "/"
 	}
 
+	log.Debugf("SCHEME %s DOMAIN %s PRIMARYLINK %s HOSTNAME %s", SCHEME, DOMAIN, PRIMARYLINK, uri.Hostname())
+
 	fa = &ForceAssets{mu: &sync.Mutex{}, Assets: make(map[string]string)}
 	replaceDomain = &ForceAssets{mu: &sync.Mutex{}, Assets: make(map[string]string)}
 
@@ -140,7 +137,7 @@ func Run(user_submitted_uri string, user_submitted_depth int, db *storm.DB) erro
 	c := colly.NewCollector(
 		colly.MaxDepth(DEPTH),
 		colly.AllowedDomains(DOMAIN),
-		colly.Async(true),
+		colly.Async(false),
 	)
 	c.UserAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:67.0) Gecko/20100101 Firefox/67.0"
 
@@ -282,7 +279,9 @@ func Run(user_submitted_uri string, user_submitted_depth int, db *storm.DB) erro
 	})
 
 	c.RedirectHandler = RedirectHandler
-	err = c.Visit(SCHEME + DOMAIN + PRIMARYLINK)
+	host := SCHEME + DOMAIN + PRIMARYLINK
+	log.Debug(host)
+	err = c.Visit(host)
 	if err != nil {
 		return err
 	}
@@ -299,6 +298,7 @@ func Run(user_submitted_uri string, user_submitted_depth int, db *storm.DB) erro
 		return err
 	}
 
+	log.Debug("end clone")
 	return nil
 
 }

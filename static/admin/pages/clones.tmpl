@@ -1,0 +1,139 @@
+<div class="row">
+
+    <div class="col s12 m4 l4">
+        <form class="marjen z-depth-1" method="post" action="/kushtaka/clones">
+            <div class="row">
+                <h5 class="col">New Clone</h5>
+            </div>
+
+            <div class="row">
+                <div class="input-field col">
+                    <input id="fqdn" type="text" name="fqdn" value="{{ .Forms.Clone.FQDN }}" required class="validate">
+                    <label for="fqdn" data-error="example: devops-nyc-01" data-success="valid">
+                        FQDN
+                        <a class="vertical-align tooltipped" data-position="bottom" data-tooltip="The FQDN of the website you'd like to clone"><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col">
+                    <button class="waves-effect waves-light teal lighten-1 btn">Clone</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col s12 m8 l8">
+            <div class="marjen z-depth-1">
+
+                <h5>Clone List</h5>
+
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th>FQDN</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {{ if len .Clones }}
+                    {{ range $key, $v := .Clones }}
+                            <tr id="clone-id-{{$v.ID}}">
+                                <td>{{ $v.FQDN}}</td>
+                                {{ if eq $v.FQDN "Default" }}
+                                    <td><a class="disabled btn-floating waves-effect waves-light"><i class="material-icons">delete_sweep</i></button></td>
+                                {{ else }}
+                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteTeamModal({{ $v }})"><i class="material-icons">delete_sweep</i></a></td>
+                                {{ end }}
+                            </tr>
+                    {{ end }}
+                    {{ end }}
+                    </tbody>
+                </table>
+            </div>
+    </div>
+
+    <!-- Delete Modal Structures -->
+    <div id="delete-clone-modal" class="modal-gap modal">
+        <div class="modal-content">
+            <div class="row">
+                <h5 class="col">Delete the Clone?</h5>
+            </div>
+
+            <div class="row">
+                <div class="input-field col">
+                    <button id="delete-clone-modal-no"  class="waves-effect waves-light teal lighten-1 btn">Cancel</button>
+                    <button id="delete-clone-modal-yes" class="waves-effect waves-light red lighten-1 btn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+<script>
+     var uri = "{{ .URI }}/kushtaka/clone";
+
+    $(document).ready(function(){
+        var elems = document.querySelectorAll('.modal');
+        var instances = M.Modal.init(elems, {});
+    });
+
+    function cancelDelete(id) {
+        var modalElement = document.getElementById("delete-clone-modal");
+        var instance = M.Modal.getInstance(modalElement);
+        instance.close();
+    }
+
+    function deleteTeam(obj) {
+        deleteData(obj, uri);
+        console.log(obj);
+        var id = "team-id-" + obj.ID.toString();
+        console.log(id);
+        document.getElementById(id).remove();
+    }
+
+    function deleteData(data, url) {
+        fetch(url, {
+        method: 'DELETE', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{
+            'Content-Type': 'application/json'
+        }
+        }).then(res => res.json())
+        .then(response => respDeleteTeam("delete-clone-modal", response))
+        .catch(error => errc(error));
+    }
+
+
+    function respDeleteTeam(modalType, resp) {
+        var modalElement = document.getElementById(modalType);
+        var instance = M.Modal.getInstance(modalElement);
+        if (resp.Status === "success") {
+            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            instance.close();
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
+        }
+    }
+
+
+    function deleteTeamModal(id) {
+        var modalElement = document.getElementById("delete-clone-modal");
+        var instance = M.Modal.getInstance(modalElement);
+
+        document.getElementById("delete-clone-modal-no").onclick = function() {cancelDelete(id)};
+        document.getElementById("delete-clone-modal-yes").onclick = function() {deleteTeam(id)};
+
+        instance.open();
+
+    }
+
+    function errc(err) {
+        M.toast({html: err, classes: 'green lighten-1'})
+        console.error('Error:', err);
+    }
+</script>

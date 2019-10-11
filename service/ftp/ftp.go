@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/asdine/storm"
 	"github.com/kushtaka/kushtakad/events"
 	"github.com/kushtaka/kushtakad/service/filesystem"
 )
@@ -157,7 +158,7 @@ type FtpService struct {
 	driver Driver
 }
 
-func (s FtpService) Handle(ctx context.Context, conn net.Conn) error {
+func (s FtpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) error {
 
 	ftpConn := s.server.newConn(conn, s.driver, s.recv)
 

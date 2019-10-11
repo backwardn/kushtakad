@@ -90,6 +90,10 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	kushtaka.Use(isAuthenticated)
 	kushtaka.HandleFunc("/dashboard", handlers.GetDashboard).Methods("GET")
 
+	// clones
+	kushtaka.HandleFunc("/clones/page/{pid}/limit/{oid}", handlers.GetClones).Methods("GET")
+	kushtaka.HandleFunc("/clones", handlers.PostClones).Methods("POST")
+
 	// sensors
 	kushtaka.HandleFunc("/sensors/page/{pid}/limit/{oid}", handlers.GetSensors).Methods("GET")
 	kushtaka.HandleFunc("/sensors", handlers.PostSensors).Methods("POST")

@@ -13,7 +13,7 @@
                         <option value="" disabled selected>---</option>
                         <option value="telnet">Telnet</option>
                         <option value="ftp">FTP</option>
-                        <option value="ssh">SSH</option>
+                        <option value="http">HTTP</option>
                     </select>
                 </div>
                 
@@ -129,6 +129,7 @@
         </div>
     </div>
 
+    {{ template "admin/modals/http_create" . }}
     {{ template "admin/modals/telnet_create" . }}
     {{ template "admin/modals/ftp_create" . }}
 
@@ -190,8 +191,20 @@
             postTelnet(type);
         } else if (type == "ftp") {
             postFtp(type);
+        } else if (type == "http") {
+            postHttp(type);
         }
     }
+
+    function postHttp(type) {
+        var sid = parseInt(document.getElementById("sensor_id").value);
+        var port = parseInt(document.getElementById("http-port").value);
+        var cid= parseInt($( "#clone-id option:selected" ).text());
+        var url = uri + sid + "/type/http";
+        var data = {sensor_id: sid , type: type, port: port, clone_id: cid};
+        postData(data, url, type);
+    }
+
 
     function postFtp(type) {
         var sid = parseInt(document.getElementById("sensor_id").value);
@@ -232,6 +245,24 @@
             respTelnet(response);
         } else if (type === "ftp") {
             respFtp(response);
+        } else if (type === "http") {
+            respHttp(response);
+        }
+    }
+
+    function respHttp(resp) {
+        modalType = "http-modal"; 
+        var modalElement = document.getElementById(modalType);
+        var instance = M.Modal.getInstance(modalElement);
+
+        if (resp.Status === "success") {
+            document.getElementById("http-port").value = "";
+            document.getElementById("clone-id").selectedIndex = 0; 
+            addServiceRow(resp.Service);
+            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            instance.close();
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
         }
     }
 

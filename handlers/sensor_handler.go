@@ -44,6 +44,15 @@ func GetSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var clones []models.Clone
+	err = app.DB.All(&clones)
+	if err != nil {
+		app.Fail(err.Error())
+		http.Redirect(w, r, redir, 302)
+		return
+	}
+
+	app.View.Clones = clones
 	app.View.Teams = teams
 	app.View.Links.Sensors = "active"
 	app.View.AddCrumb("Sensors", "/kushtaka/sensors/page/1/limit/100")
