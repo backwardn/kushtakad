@@ -90,7 +90,6 @@ func startSensor(auth *Auth, ctx context.Context, svm []*ServiceMap) {
 }
 
 func (h *Hub) handle(c net.Conn) {
-	log.Debug("handle()")
 
 	sm, newConn, err := h.findService(c)
 	if sm == nil {
@@ -103,8 +102,9 @@ func (h *Hub) handle(c net.Conn) {
 	newConn = TimeoutConn(newConn, time.Second*30)
 
 	ctx := context.Background()
+
 	if err := sm.Service.Handle(ctx, newConn, sm.DB); err != nil {
-		log.Errorf(color.RedString("Error handling service: %s: %s", sm.SensorName, err.Error()))
+		log.Errorf(color.RedString("Error handling service: %s > %s", sm.Type, err.Error()))
 	}
 }
 

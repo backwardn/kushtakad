@@ -99,7 +99,6 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 		} else if err != nil {
 			return err
 		}
-
 		defer req.Body.Close()
 
 		body := make([]byte, 1024)
@@ -144,8 +143,12 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 		res.Body = replaceURL(res.Body)
 
 		headers := http.Header{}
-		//host := fmt.Sprintf("%s:%d", s.HostNameOrExternalIp, s.Port)
-		host := fmt.Sprintf("%s:%d", "localhost", 5555)
+		var host string
+		if s.Port == 80 || s.Port == 443 {
+			host = fmt.Sprintf("%s", s.HostNameOrExternalIp)
+		} else {
+			host = fmt.Sprintf("%s:%d", s.HostNameOrExternalIp, s.Port)
+		}
 
 		for k, v := range res.Headers {
 			var s string
