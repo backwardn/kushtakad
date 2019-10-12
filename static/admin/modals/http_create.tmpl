@@ -17,29 +17,37 @@
                         <a class="tooltipped" data-position="bottom" data-tooltip="What port should this emulated service bind on?"><i class="material-icons icon-black">help_outline</i></a>
                     </label>
                 </div>
-            </div>
-    
-            <div class="input-field col s12">
-                <select id="clone-id" name="clone-id">
-                    <option value="" disabled selected>---</option>
-                    {{ if len .Teams }}
-                        {{ range $key, $v := .Clones}}
-                            <option value="clone-id-{{ $v.ID }}">{{ $v.FQDN }}</option>
-                        {{ end }}
-                    {{ end }}
-                </select>
-                <label for="Clone">
-                    Clone
-                    <a class="tooltipped" data-position="bottom" data-tooltip="What cloned site do you want to utilize?"><i class="material-icons icon-black">help_outline</i></a>
-                </label>
+                <div class="input-field col">
+                    <input id="hostname_or_external_ip" type="text" name="hostname_or_external_ip" value="" required class="validate">
+
+                    <label for="hostname_or_external_ip">
+                        Hostname or Sensor's External IP
+                        <a class="tooltipped" data-position="bottom" data-tooltip="TODO{add this help}"><i class="material-icons icon-black">help_outline</i></a>
+                    </label> 
+                </div>
             </div>
 
+            <div class="row">
+                <div class="input-field col">
+                    <select id="clone-id" name="clone-id">
+                        <option value="" disabled selected>---</option>
+                        {{ if len .Teams }}
+                            {{ range $key, $v := .Clones}}
+                                <option value="{{ $v.ID }}">{{ $v.FQDN }}</option>
+                            {{ end }}
+                        {{ end }}
+                    </select>
+                    <label for="Clone">
+                        Clone
+                        <a class="tooltipped" data-position="bottom" data-tooltip="What cloned site do you want to utilize?"><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
+                </div>
+            </div>
             <div class="row">
                 <div class="input-field col">
                     <button onclick="post('http')" class="waves-effect waves-light teal lighten-1 btn">Submit</button>
                 </div>
             </div>
-
     </div>
 </div>
 

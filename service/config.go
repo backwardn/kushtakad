@@ -173,7 +173,7 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 				return nil, err
 			}
 
-			db, err := storage.MustDBWithLocationAndName(state.ClonesLocation(), "www.bend.k12.or.us")
+			db, err := storage.MustDBWithLocationAndName(state.ClonesLocation(), httpw.FQDN)
 			if err != nil {
 				log.Fatal(err)
 				return nil, err

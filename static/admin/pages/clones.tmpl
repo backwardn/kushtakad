@@ -44,7 +44,7 @@
                                 {{ if eq $v.FQDN "Default" }}
                                     <td><a class="disabled btn-floating waves-effect waves-light"><i class="material-icons">delete_sweep</i></button></td>
                                 {{ else }}
-                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteTeamModal({{ $v }})"><i class="material-icons">delete_sweep</i></a></td>
+                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteCloneModal({{ $v }})"><i class="material-icons">delete_sweep</i></a></td>
                                 {{ end }}
                             </tr>
                     {{ end }}
@@ -88,10 +88,10 @@
         instance.close();
     }
 
-    function deleteTeam(obj) {
+    function deleteClone(obj) {
         deleteData(obj, uri);
         console.log(obj);
-        var id = "team-id-" + obj.ID.toString();
+        var id = "clone-id-" + obj.ID.toString();
         console.log(id);
         document.getElementById(id).remove();
     }
@@ -104,12 +104,12 @@
             'Content-Type': 'application/json'
         }
         }).then(res => res.json())
-        .then(response => respDeleteTeam("delete-clone-modal", response))
+        .then(response => respDelete("delete-clone-modal", response))
         .catch(error => errc(error));
     }
 
 
-    function respDeleteTeam(modalType, resp) {
+    function respDelete(modalType, resp) {
         var modalElement = document.getElementById(modalType);
         var instance = M.Modal.getInstance(modalElement);
         if (resp.Status === "success") {
@@ -121,12 +121,12 @@
     }
 
 
-    function deleteTeamModal(id) {
+    function deleteCloneModal(id) {
         var modalElement = document.getElementById("delete-clone-modal");
         var instance = M.Modal.getInstance(modalElement);
 
         document.getElementById("delete-clone-modal-no").onclick = function() {cancelDelete(id)};
-        document.getElementById("delete-clone-modal-yes").onclick = function() {deleteTeam(id)};
+        document.getElementById("delete-clone-modal-yes").onclick = function() {deleteClone(id)};
 
         instance.open();
 

@@ -93,6 +93,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	// clones
 	kushtaka.HandleFunc("/clones/page/{pid}/limit/{oid}", handlers.GetClones).Methods("GET")
 	kushtaka.HandleFunc("/clones", handlers.PostClones).Methods("POST")
+	kushtaka.HandleFunc("/clone", handlers.DeleteClone).Methods("DELETE")
 
 	// sensors
 	kushtaka.HandleFunc("/sensors/page/{pid}/limit/{oid}", handlers.GetSensors).Methods("GET")

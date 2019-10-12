@@ -199,9 +199,12 @@
     function postHttp(type) {
         var sid = parseInt(document.getElementById("sensor_id").value);
         var port = parseInt(document.getElementById("http-port").value);
-        var cid= parseInt($( "#clone-id option:selected" ).text());
+        var externalFQDNorIP = document.getElementById("hostname_or_external_ip").value;
+        var el = document.getElementById("clone-id");
+        var cid = parseInt(el.options[el.selectedIndex].value);
+        var fqdn = el.options[el.selectedIndex].text;
         var url = uri + sid + "/type/http";
-        var data = {sensor_id: sid , type: type, port: port, clone_id: cid};
+        var data = {sensor_id: sid , fqdn: fqdn, type: type, port: port, clone_id: cid, hostname_or_external_ip: externalFQDNorIP};
         postData(data, url, type);
     }
 

@@ -105,7 +105,7 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 }
 */
 
-func replaceURL(body []byte) []byte {
+func replaceURL(host string, body []byte) []byte {
 	s := string(body)
 
 	// first replace this string
@@ -113,6 +113,6 @@ func replaceURL(body []byte) []byte {
 	// then replace this
 	s = strings.ReplaceAll(s, "http://KUSHTAKA_URL_REPLACE", "KUSHTAKA_URL_REPLACE")
 	// now having normalized the links, replace them all with localhost
-	s = strings.ReplaceAll(s, "KUSHTAKA_URL_REPLACE", "http://localhost:5555")
+	s = strings.ReplaceAll(s, "KUSHTAKA_URL_REPLACE", host)
 	return []byte(s)
 }

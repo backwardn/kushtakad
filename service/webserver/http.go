@@ -140,8 +140,6 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 			log.Debug(err)
 		}
 
-		res.Body = replaceURL(res.Body)
-
 		headers := http.Header{}
 		var host string
 		if s.Port == 80 || s.Port == 443 {
@@ -149,6 +147,8 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 		} else {
 			host = fmt.Sprintf("%s:%d", s.HostNameOrExternalIp, s.Port)
 		}
+
+		res.Body = replaceURL(host, res.Body)
 
 		for k, v := range res.Headers {
 			var s string

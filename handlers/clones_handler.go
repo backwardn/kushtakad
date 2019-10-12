@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,6 +11,59 @@ import (
 	"github.com/kushtaka/kushtakad/state"
 	"github.com/kushtaka/kushtakad/storage"
 )
+
+func DeleteClone(w http.ResponseWriter, r *http.Request) {
+	resp := &Response{}
+	w.Header().Set("Content-Type", "application/json")
+	app, err := state.Restore(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var clone models.Clone
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&clone)
+	if err != nil {
+		resp = NewResponse("error", "Unable to decode response body", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	tx, err := app.DB.Begin(true)
+	if err != nil {
+		resp = NewResponse("error", "Tx can't begin", err)
+		w.Write(resp.JSON())
+		return
+	}
+	defer tx.Rollback()
+
+	err = tx.One("ID", clone.ID, &clone)
+	if err != nil {
+		log.Error(err)
+		resp := NewResponse("error", "Clone id not found, does clone exist?", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.DeleteStruct(&clone)
+	if err != nil {
+		resp := NewResponse("error", "Unable to update clone", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		resp := NewResponse("error", "Unable to commit tx", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	msg := fmt.Sprintf("Successfully deleted the clone [%s]", clone.FQDN)
+	resp = NewResponse("success", msg, err)
+	w.Write(resp.JSON())
+	return
+}
 
 func GetClones(w http.ResponseWriter, r *http.Request) {
 	redir := "/kushtaka/dashboard"
@@ -78,6 +132,7 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback()
 
 	sc := models.NewClone()
+	sc.Hostname = fqdn.Hostname()
 	sc.FQDN = fqdn.Scheme + "://" + fqdn.Hostname() + fqdn.Port()
 	sc.Depth = 1
 	tx.One("FQDN", fqdn, &mclone)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/asdine/storm"
@@ -210,6 +211,9 @@ func CreateService(stype string, sensor models.Sensor, r *http.Request, tx storm
 				return cfg, fmt.Errorf("Port is already assigned to another service : %w", err)
 			}
 		}
+
+		http.FQDN = strings.TrimLeft(http.FQDN, "http://")
+		http.FQDN = strings.TrimLeft(http.FQDN, "https://")
 
 		cfg.Service = http
 		cfg.SensorID = sensor.ID
