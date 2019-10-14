@@ -56,7 +56,7 @@
 
 
     var uri = "{{ .URI }}/kushtaka/smtp/";
- 
+
     $(document).ready(function () {
         checkFill();
         document.addEventListener('keydown', checkFill);
@@ -79,7 +79,7 @@
         var form = getForm();
 
         for (var key in form) {
-            if (form[key].length === 0) {
+            if (key != "username" && key != "password" && form[key].length === 0) {
                 isFilled = false
             }
         };

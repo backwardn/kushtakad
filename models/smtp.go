@@ -63,13 +63,5 @@ func (s Smtp) ValidateSmtp() error {
 			validation.Required,
 			validation.Length(1, 5).Error("must be between 1-5 characters"),
 			is.Port.Error("must be a valid port")),
-		"Username": validation.Validate(
-			&s.Username,
-			validation.Required,
-			validation.Length(5, 128).Error("must be between 5-128 characters")),
-		"Password": validation.Validate(
-			&s.Password,
-			validation.Required,
-			validation.Length(4, 64).Error("must be between 4-64 characters")),
 	}.Filter()
 }
