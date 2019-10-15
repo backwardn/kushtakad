@@ -21,6 +21,7 @@ func GetSensor(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
+
 	sensor := &models.Sensor{}
 	err = app.DB.One("ID", id, sensor)
 	if err != nil {

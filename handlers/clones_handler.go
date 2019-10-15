@@ -133,6 +133,7 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 
 	sc := models.NewClone()
 	sc.Hostname = fqdn.Hostname()
+	// TODO: horrible, fix soon
 	sc.FQDN = fqdn.Scheme + "://" + fqdn.Hostname() + fqdn.Port()
 	sc.Depth = 1
 	tx.One("FQDN", fqdn, &mclone)

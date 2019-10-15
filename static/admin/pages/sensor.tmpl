@@ -40,7 +40,15 @@
 
                 <div class="input-field col">
                     <select id="service-type" name="type">
-                        <option value="{{ .Sensor.TeamID }}" selected>--current team---</option>
+                        {{ if len .Teams }}
+                            {{ range $key, $team := .Teams }}
+                                {{ if eq $team.ID .Team.ID }}
+                                    <option value="{{ $team.ID }}" selected>{{ $team.Name }}</option>
+                                {{ else }}
+                                    <option value="{{ $team.ID }}">{{ $team.Name }}</option>
+                                {{ end }}
+                            {{ end }}
+                        {{ end }}
                     </select>
                 </div>
 
