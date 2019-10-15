@@ -58,15 +58,6 @@ func forceReplace() error {
 	return nil
 }
 
-//var DOMAIN = "www.bend.k12.or.us"
-//var DOMAIN = "synergy.beaverton.k12.or.us"
-//var DOMAIN = "www.beaverton.k12.or.us"
-//var DOMAIN = "vpn.umass.edu"
-//var PRIMARYLINK = "/global-protect/login.esp"
-//var DOMAIN = "www.seattleschools.org"
-//var SCHEME = "https://"
-//var DOMAIN = "www.opsecedu.com"
-
 type ForceAssets struct {
 	mu     *sync.Mutex
 	Assets map[string]string
