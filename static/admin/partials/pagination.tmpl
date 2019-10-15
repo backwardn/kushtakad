@@ -1,0 +1,17 @@
+{{ define "admin/partials/pagination" }}
+<ul class="pagination">
+    {{ if .Pagi.PrevEnabled }}
+        <li class="waves-effect"><a href="{{ .Pagi.PrevLink }}"><i class="material-icons">chevron_left</i></a></li>
+    {{ else }}
+        <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
+    {{ end }}
+
+    <li class="active"><a href="#!">{{ .Pagi.Page }}</a></li>
+
+    {{ if .Pagi.NextEnabled }}
+        <li class="waves-effect"><a href="{{ .Pagi.NextLink }}"><i class="material-icons">chevron_right</i></a></li>
+    {{ else }}
+        <li class="disabled"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
+    {{ end }}
+  </ul>
+{{ end }}

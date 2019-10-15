@@ -88,7 +88,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	kushtaka := mux.NewRouter().PathPrefix("/kushtaka").Subrouter().StrictSlash(true)
 	kushtaka.Use(forceSetup)
 	kushtaka.Use(isAuthenticated)
-	kushtaka.HandleFunc("/dashboard", handlers.GetDashboard).Methods("GET")
+	kushtaka.HandleFunc("/dashboard/{pid}/1/limit/{oid}", handlers.GetDashboard).Methods("GET")
 
 	// clones
 	kushtaka.HandleFunc("/clones/page/{pid}/limit/{oid}", handlers.GetClones).Methods("GET")

@@ -9,6 +9,7 @@ import (
 )
 
 func GetDashboard(w http.ResponseWriter, r *http.Request) {
+	base := "/kushtaka/dashboard"
 	app, err := state.Restore(r)
 	if err != nil {
 		log.Error(err)
@@ -17,6 +18,13 @@ func GetDashboard(w http.ResponseWriter, r *http.Request) {
 	var events []events.EventManager
 	app.DB.All(&events, storm.Reverse())
 	log.Infof("total events found %d", len(events))
+
+	app.View.Pagi.BaseURI = base
+	app.View.Pagi.Configure(len(events), r)
+
+	app.DB.All(&events, storm.Limit(app.View.Pagi.Limit), storm.Skip(app.View.Pagi.Offset), storm.Reverse())
+	log.Infof("total events found %d", len(events))
+
 	app.View.AddCrumb("Dashboard", "#")
 	app.View.Events = events
 	app.View.Links.Dashboard = "active"

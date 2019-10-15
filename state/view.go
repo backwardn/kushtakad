@@ -2,6 +2,7 @@ package state
 
 import (
 	"github.com/kushtaka/kushtakad/events"
+	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
 )
 
@@ -26,6 +27,7 @@ type View struct {
 	Users          []models.User
 	SensorServices []models.ServiceCfg
 	Events         []events.EventManager
+	Pagi           *helpers.Pagi
 }
 
 type Crumb struct {
@@ -69,6 +71,7 @@ func NewView() *View {
 		Forms:        NewForms(),
 		Team:         models.NewTeam(),
 		Token:        models.NewToken(),
+		Pagi:         helpers.NewPagi(),
 	}
 }
 
