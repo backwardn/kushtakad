@@ -52,5 +52,6 @@ require (
 	golang.org/x/net v0.0.0-20191003171128-d98b1b443823
 	golang.org/x/sys v0.0.0-20191008105621-543471e840be // indirect
 	golang.org/x/tools v0.0.0-20191007185444-6536af71d98a // indirect
+	google.golang.org/appengine v1.5.0
 	gopkg.in/jordan-wright/email.v1 v1.0.0-20150827023900-a3d0a1a81cdc
 )

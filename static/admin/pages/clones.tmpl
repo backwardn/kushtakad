@@ -16,6 +16,26 @@
                 </div>
             </div>
 
+
+            <div class="row">
+                <div class="input-field col">
+                    <select id="http-depth" name="http-emulate">
+                        <option value="" disabled selected>---</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                    </select>
+
+                    <label for="http-depth">
+                        Depth
+                        <a class="tooltipped" data-position="bottom" data-tooltip="Depth tells the kushtaka scraper how deep to scrape. The higher the number the deeper and longer the process takes."><i class="material-icons icon-black">help_outline</i></a>
+                    </label>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="input-field col">
                     <button class="waves-effect waves-light teal lighten-1 btn">Clone</button>
@@ -78,6 +98,9 @@
      var uri = "{{ .URI }}/kushtaka/clone";
 
     $(document).ready(function(){
+        $('select').formSelect();
+        $('.tooltipped').tooltip();
+
         var elems = document.querySelectorAll('.modal');
         var instances = M.Modal.init(elems, {});
     });

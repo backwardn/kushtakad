@@ -44,7 +44,7 @@ type HttpService struct {
 	FQDN                 string `json:"fqdn"`
 	Port                 int    `json:"port"`
 	Type                 string `json:"type"`
-	HostNameOrExternalIp string `json:"hostname_or_external_ip"`
+	HostNameOrExternalIp string `json:"http-hostname-or-external-ip"`
 
 	Host   string
 	ApiKey string
@@ -112,133 +112,102 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 		body = body[:n]
 		io.Copy(ioutil.Discard, req.Body)
 
-		//var redir Redirect
-
-		/*
-			db.One("URL", u, &redir)
-
-			if redir.ID > 0 {
-				for k, v := range redir.Headers {
-					var s string
-					for _, v1 := range v {
-						v1 = strings.ReplaceAll(v1, "KUSHTAKA_URL_REPLACE", "localhost:3002")
-						v1 = strings.ReplaceAll(v1, "https", "http")
-						s = s + v1
-					}
-					w.Header().Set(k, s)
-				}
-				w.WriteHeader(redir.StatusCode)
-				return
-			}
-
-		*/
-		var res Res
 		u := req.URL.RequestURI()
-		log.Debug(u)
-		err = db.One("URL", u, &res)
+
+		var redir Redirect
+		err = db.One("URL", u, &redir)
 		if err != nil {
-			log.Debug(err)
+			log.Debugf("Did not find %s for the Redirect > %s", u, err.Error())
 		}
 
-		headers := http.Header{}
-		var host string
-		if s.Port == 80 || s.Port == 443 {
-			host = fmt.Sprintf("%s", s.HostNameOrExternalIp)
+		// first we check to see if the URI is a redirect
+		if redir.ID > 0 {
+			headers := buildHeaders(redir.Headers)
+			resp := http.Response{
+				StatusCode: redir.StatusCode,
+				Status:     http.StatusText(redir.StatusCode),
+				Proto:      req.Proto,
+				ProtoMajor: req.ProtoMajor,
+				ProtoMinor: req.ProtoMinor,
+				Request:    req,
+				Header:     headers,
+			}
+
+			if err := resp.Write(conn); err != nil {
+				log.Debug(err)
+				return err
+			}
+
 		} else {
-			host = fmt.Sprintf("%s:%d", s.HostNameOrExternalIp, s.Port)
-		}
 
-		res.Body = replaceURL(host, res.Body)
+			// now we check to see if the URI is a page in the dataset
+			var res Res
+			err = db.One("URL", u, &res)
+			if err != nil {
 
-		for k, v := range res.Headers {
-			var s string
-			for _, v1 := range v {
-				v1 = strings.ReplaceAll(v1, "KUSHTAKA_URL_REPLACE", host)
-				v1 = strings.ReplaceAll(v1, "https", "http")
-				s = s + v1
+				// and this is the werid if statement
+				// if the page doesn't exist, just grab the first page by ID 1
+				// and redirect the attacker there
+				// this could be much cleaner
+				log.Debugf("Did not find %s for the Res > %s", u, err.Error())
+				db.One("ID", 1, &res)
+				headers := buildHeaders(redir.Headers)
+				resp := http.Response{
+					StatusCode: 301,
+					Status:     http.StatusText(301),
+					Proto:      req.Proto,
+					ProtoMajor: req.ProtoMajor,
+					ProtoMinor: req.ProtoMinor,
+					Request:    req,
+					Header:     headers,
+				}
+
+				if err := resp.Write(conn); err != nil {
+					log.Debug(err)
+					return err
+				}
+			} else {
+
+				var host string
+				if s.Port == 80 || s.Port == 443 {
+					host = fmt.Sprintf("%s", s.HostNameOrExternalIp)
+				} else {
+					host = fmt.Sprintf("%s:%d", s.HostNameOrExternalIp, s.Port)
+				}
+
+				headers := buildHeaders(res.Headers)
+				res.Body = replaceURL(host, res.Body)
+				resp := http.Response{
+					ContentLength: int64(len(res.Body)),
+					Body:          ioutil.NopCloser(bytes.NewReader(res.Body)),
+					StatusCode:    res.StatusCode,
+					Status:        http.StatusText(res.StatusCode),
+					Proto:         req.Proto,
+					ProtoMajor:    req.ProtoMajor,
+					ProtoMinor:    req.ProtoMinor,
+					Request:       req,
+					Header:        headers,
+				}
+
+				if err := resp.Write(conn); err != nil {
+					log.Debug(err)
+					return err
+				}
 			}
-
-			switch strings.TrimSpace(k) {
-			case "Strict-Transport-Security":
-			case "Content-Length":
-			default:
-				headers.Set(k, s)
-			}
-		}
-
-		resp := http.Response{
-			ContentLength: int64(len(res.Body)),
-			Body:          ioutil.NopCloser(bytes.NewReader(res.Body)),
-			StatusCode:    http.StatusOK,
-			Status:        http.StatusText(http.StatusOK),
-			Proto:         req.Proto,
-			ProtoMajor:    req.ProtoMajor,
-			ProtoMinor:    req.ProtoMinor,
-			Request:       req,
-			Header:        headers,
-		}
-
-		if err := resp.Write(conn); err != nil {
-			return err
 		}
 	}
 }
 
-/*
-func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) error {
-
-	for {
-		br := bufio.NewReader(conn)
-
-		req, err := http.ReadRequest(br)
-		if err == io.EOF {
-			return nil
-		} else if err != nil {
-			return err
+func buildHeaders(h http.Header) http.Header {
+	headers := http.Header{}
+	for k, v := range h {
+		var s string
+		for _, v1 := range v {
+			v1 = strings.ReplaceAll(v1, "KUSHTAKA_URL_REPLACE", "localhost:3002")
+			v1 = strings.ReplaceAll(v1, "https", "http")
+			s = s + v1
 		}
-
-		defer req.Body.Close()
-
-		body := make([]byte, 1024)
-
-		n, err := req.Body.Read(body)
-		if err == io.EOF {
-		} else if err != nil {
-			return err
-		}
-
-		body = body[:n]
-
-		io.Copy(ioutil.Discard, req.Body)
-
-		var res Res
-		u := req.URL.RequestURI()
-		log.Debug(u)
-		err = db.One("URL", u, &res)
-		if err != nil {
-			log.Debug(err)
-		}
-		//msg := "<html><head></head><body><p>hello</p></body></html>"
-		msg := "asdf"
-
-		resp := http.Response{
-			ContentLength: int64(len(msg)),
-			Body:          ioutil.NopCloser(bytes.NewReader([]byte(msg))),
-			StatusCode:    http.StatusOK,
-			Status:        http.StatusText(http.StatusOK),
-			Proto:         req.Proto,
-			ProtoMajor:    req.ProtoMajor,
-			ProtoMinor:    req.ProtoMinor,
-			Request:       req,
-			Header: http.Header{
-				"Server": []string{s.Server},
-			},
-		}
-
-		if err := resp.Write(conn); err != nil {
-			return err
-		}
+		headers.Set(k, s)
 	}
+	return headers
 }
-
-*/
