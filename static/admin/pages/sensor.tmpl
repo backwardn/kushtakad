@@ -39,10 +39,10 @@
             <div class="row">
 
                 <div class="input-field col">
-                    <select id="service-type" name="type">
+                    <select id="team" name="team">
                         {{ if len .Teams }}
                             {{ range $key, $team := .Teams }}
-                                {{ if eq $team.ID .Team.ID }}
+                                {{ if eq $team.ID $.Team.ID }}
                                     <option value="{{ $team.ID }}" selected>{{ $team.Name }}</option>
                                 {{ else }}
                                     <option value="{{ $team.ID }}">{{ $team.Name }}</option>
@@ -53,7 +53,7 @@
                 </div>
 
                 <div class="input-field col">
-                    <button class="btn-floating waves-effect waves-light teal lighten-1" onclick="modalPop()">
+                    <button class="btn-floating waves-effect waves-light teal lighten-1" onclick="putTeam()">
                         <i class="material-icons">save</i>
                     </button>
                 </div>
@@ -237,6 +237,15 @@
         postData(data, url, type);
     }
 
+    function putTeam() {
+        var sid = parseInt(document.getElementById("sensor_id").value);
+        var el = document.getElementById("team");
+        var team_id = parseInt(el.options[el.selectedIndex].value);
+        var url = uri + "/team/update";
+        var data = {id: sid , team_id: team_id};
+        putData(data, url);
+    }
+
     function addServiceRow(obj) {
         let json = JSON.stringify(obj);
         console.log(json);
@@ -259,6 +268,7 @@
         } else if (type === "http") {
             respHttp(response);
         }
+
     }
 
     function respHttp(resp) {
@@ -266,12 +276,11 @@
         var modalElement = document.getElementById(modalType);
         var instance = M.Modal.getInstance(modalElement);
 
+    }
+
+    function respBasic(resp) {
         if (resp.Status === "success") {
-            document.getElementById("http-port").value = "";
-            document.getElementById("clone-id").selectedIndex = 0; 
-            addServiceRow(resp.Service);
             M.toast({html: resp.Message , classes: 'green lighten-1'})
-            instance.close();
         } else {
             M.toast({html: resp.Message , classes: 'red lighten-1'})
         }
@@ -314,6 +323,18 @@
         console.error('Error:', err);
     }
 
+    function putData(data, url) {
+        fetch(url, {
+        method: 'PUT', // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers:{
+            'Content-Type': 'application/json'
+        }
+        }).then(res => res.json())
+        .then(response => respBasic(response))
+        .catch(error => errc(error));
+    }
+    
     function postData(data, url, type) {
         fetch(url, {
         method: 'POST', // or 'PUT'

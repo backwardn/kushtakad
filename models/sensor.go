@@ -12,7 +12,7 @@ import (
 
 type Sensor struct {
 	ID      int64        `storm:"id,increment,index"`
-	TeamID  int64        `storm:"id,index"`
+	TeamID  int64        `storm:"id,index" json:"team_id"`
 	Name    string       `storm:"index,unique" json:"name"`
 	Note    string       `storm:"index" json:"note"`
 	ApiKey  string       `storm:"index,unique" json:"api_key"`

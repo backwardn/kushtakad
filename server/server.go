@@ -98,6 +98,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	// sensors
 	kushtaka.HandleFunc("/sensors/page/{pid}/limit/{oid}", handlers.GetSensors).Methods("GET")
 	kushtaka.HandleFunc("/sensors", handlers.PostSensors).Methods("POST")
+
 	// sensor
 	kushtaka.HandleFunc("/sensor/{id}", handlers.GetSensor).Methods("GET")
 	kushtaka.HandleFunc("/sensor", handlers.PostSensor).Methods("POST")
@@ -106,6 +107,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	// service
 	kushtaka.HandleFunc("/service/{sensor_id}/type/{type}", handlers.PostService).Methods("POST")
 	kushtaka.HandleFunc("/service", handlers.DeleteService).Methods("DELETE")
+	kushtaka.HandleFunc("/service/team/update", handlers.UpdateSensorsTeam).Methods("PUT")
 
 	// tokens
 	kushtaka.HandleFunc("/tokens/page/{pid}/limit/{oid}", handlers.GetTokens).Methods("GET")
