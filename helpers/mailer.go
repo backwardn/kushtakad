@@ -107,15 +107,22 @@ func (te *TestEvent) SendTestEvent() error {
 	e.To = te.Email.To
 	e.Subject = te.Email.Subject
 	e.HTML = tmpl
-	err = e.Send(
-		fmt.Sprintf("%s:%s", te.Mailer.Smtp.Host, te.Mailer.Smtp.Port),
-		smtp.PlainAuth(
-			"",
-			te.Mailer.Smtp.Username,
-			te.Mailer.Smtp.Password,
-			te.Mailer.Smtp.Host,
-		),
-	)
+	if te.Mailer.Smtp.Username != "" {
+		err = e.Send(
+			fmt.Sprintf("%s:%s", te.Mailer.Smtp.Host, te.Mailer.Smtp.Port),
+			smtp.PlainAuth(
+				"",
+				te.Mailer.Smtp.Username,
+				te.Mailer.Smtp.Password,
+				te.Mailer.Smtp.Host,
+			),
+		)
+	} else {
+		err = e.Send(
+			fmt.Sprintf("%s:%s", te.Mailer.Smtp.Host, te.Mailer.Smtp.Port),
+			nil,
+		)
+	}
 	log.Debug(err)
 	return err
 
@@ -155,14 +162,21 @@ func (m *Mailer) SendSensorEvent(eventid, furl, hashid, state, emailtext string,
 	e.HTML = []byte(out.String())
 
 	hostport := fmt.Sprintf("%s:%s", m.Smtp.Host, m.Smtp.Port)
-	err = e.Send(
-		hostport,
-		smtp.PlainAuth(
-			"",
-			m.Smtp.Username,
-			m.Smtp.Password,
-			m.Smtp.Host,
-		),
-	)
+	if m.Smtp.Username != "" {
+		err = e.Send(
+			hostport,
+			smtp.PlainAuth(
+				"",
+				m.Smtp.Username,
+				m.Smtp.Password,
+				m.Smtp.Host,
+			),
+		)
+	} else {
+		err = e.Send(
+			hostport,
+			nil,
+		)
+	}
 	return err
 }
