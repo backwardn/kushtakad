@@ -162,8 +162,7 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.View.Forms = state.NewForms()
-	//app.Success(fmt.Sprintf("The clone [%s] was created successfully.", sc.FQDN))
-	app.Success(fmt.Sprintf("The clone [%s] was created successfully.", "NOT REALLY"))
+	app.Success(fmt.Sprintf("The clone [%s] was created successfully.", sc.FQDN))
 	http.Redirect(w, r, redir, 302)
 	return
 }
