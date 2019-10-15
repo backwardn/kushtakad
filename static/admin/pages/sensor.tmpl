@@ -275,6 +275,15 @@
         modalType = "http-modal"; 
         var modalElement = document.getElementById(modalType);
         var instance = M.Modal.getInstance(modalElement);
+        if (resp.Status === "success") {
+            document.getElementById("http-port").value = "";
+            document.getElementById("clone-id").selectedIndex = 0; 
+            addServiceRow(resp.Service);
+            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            instance.close();
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
+        }
 
     }
 
