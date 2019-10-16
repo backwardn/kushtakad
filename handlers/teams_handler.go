@@ -9,7 +9,7 @@ import (
 )
 
 func GetTeams(w http.ResponseWriter, r *http.Request) {
-	redir := "/kushtaka/dashboard"
+	redir := "/kushtaka/dashboard/page/1/limit/100"
 	app, err := state.Restore(r)
 	if err != nil {
 		app.Fail(err.Error())

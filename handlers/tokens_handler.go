@@ -11,7 +11,7 @@ import (
 )
 
 func GetTokens(w http.ResponseWriter, r *http.Request) {
-	redirUrl := "/kushtaka/dashboard"
+	redirUrl := "/kushtaka/dashboard/page/1/limit/1000"
 	app, err := state.Restore(r)
 	if err != nil {
 		app.Fail(err.Error())

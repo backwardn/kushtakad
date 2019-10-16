@@ -317,3 +317,7 @@ input:not([type]):focus:not([readonly]) + label, input[type="text"]:focus:not([r
 .select-wrapper input.select-dropdown {
   font-size: 14px !important;
 }
+
+.pagination li.active {
+  background-color: #0894B0 !important
+}

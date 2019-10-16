@@ -51,7 +51,7 @@ func (this *Pagi) SetupButtons() {
 
 	if this.GrandTotal > calcdTotal {
 		this.NextEnabled = true
-		this.NextPage = this.Page + 2
+		this.NextPage = this.Page + 1
 		this.NextLink = fmt.Sprintf("%v/page/%v/limit/%v", this.BaseURI, this.NextPage, this.Limit)
 	}
 }
@@ -102,6 +102,8 @@ func (this *Pagi) Configure(grandtotal int, r *http.Request) error {
 	if limit < 1 {
 		limit = 10
 	}
+
+	log.Debugf("page %d limit %d", page, limit)
 
 	this.Page = page
 	this.Limit = limit
