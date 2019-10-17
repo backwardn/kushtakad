@@ -108,7 +108,7 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 	log.Debug(ffqdn)
 
 	//go func() {
-	db, err := storage.MustDBWithLocationAndName(state.ClonesLocation(), fqdn.Hostname())
+	db, err := storage.MustDBWithLocationAndName(state.ServerClonesLocation(), fqdn.Hostname())
 	if err != nil {
 		log.Error(err)
 		return

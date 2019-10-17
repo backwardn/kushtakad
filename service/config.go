@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/kushtaka/kushtakad/service/ftp"
@@ -173,7 +174,15 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 				return nil, err
 			}
 
-			db, err := storage.MustDBWithLocationAndName(state.ClonesLocation(), httpw.FQDN)
+			newdbname := fmt.Sprintf("%d_%s.db", httpw.Port, httpw.FQDN)
+
+			err = DownloadDatabase(host, key, httpw.FQDN, newdbname)
+			if err != nil {
+				log.Fatal(err)
+				return nil, err
+			}
+
+			db, err := storage.MustDBWithLocationAndName(state.SensorClonesLocation(), newdbname)
 			if err != nil {
 				log.Fatal(err)
 				return nil, err
@@ -189,4 +198,44 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 	}
 
 	return svm, nil
+}
+
+func DownloadDatabase(host, key, dbname, newdbname string) error {
+	log.Debug("Downloading Clone DB %s", dbname)
+	url := fmt.Sprintf("%s%s%s", host, "/api/v1/database/", dbname)
+
+	spaceClient := http.Client{
+		Timeout: time.Second * 5,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", key))
+
+	resp, err := spaceClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	fullpath := filepath.Join(state.SensorClonesLocation(), newdbname)
+	f, err := os.OpenFile(fullpath, os.O_CREATE|os.O_RDWR, 0660)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.Write(body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

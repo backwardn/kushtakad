@@ -12,19 +12,21 @@ import (
 )
 
 const (
-	staticDir   = "static"
-	dataDir     = "data"
-	imagesDir   = "images"
-	sessionsDir = "sessions"
-	clonesDir   = "clones"
-	acmeDir     = "acme"
-	acmeProd    = "prod"
-	acmeTest    = "test"
-	dbFile      = "kushtaka.db"
-	dbSensor    = "sensor.db"
+	staticDir    = "static"
+	dataDir      = "data"
+	imagesDir    = "images"
+	sessionsDir  = "sessions"
+	clonesDir    = "clones"
+	clonesServer = "server"
+	clonesSensor = "sensor"
+	acmeDir      = "acme"
+	acmeProd     = "prod"
+	acmeTest     = "test"
+	dbFile       = "kushtaka.db"
+	dbSensor     = "sensor.db"
 )
 
-var cwd, themePath, imagesPath, sessionsPath, acmeProdPath, acmeTestPath, clonesPath string
+var cwd, themePath, imagesPath, sessionsPath, acmeProdPath, acmeTestPath, clonesPath, clonesServerPath, clonesSensorPath string
 
 // SetupFileStructure makes sure the files on the file system are in the correct state
 // if they are not, the application must fail
@@ -73,6 +75,22 @@ func SetupFileStructure(box *packr.Box) error {
 		err = os.MkdirAll(clonesPath, 0744)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", clonesPath))
+		}
+	}
+
+	clonesSensorPath = path.Join(cwd, dataDir, clonesDir, clonesSensor)
+	if _, err := os.Stat(clonesSensorPath); os.IsNotExist(err) {
+		err = os.MkdirAll(clonesSensorPath, 0744)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", clonesSensorPath))
+		}
+	}
+
+	clonesServerPath = path.Join(cwd, dataDir, clonesDir, clonesServer)
+	if _, err := os.Stat(clonesServerPath); os.IsNotExist(err) {
+		err = os.MkdirAll(clonesServerPath, 0744)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", clonesServerPath))
 		}
 	}
 
@@ -142,6 +160,24 @@ func ClonesLocation() string {
 	}
 
 	return path.Join(cwd, dataDir, clonesDir)
+}
+
+func SensorClonesLocation() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "ClonesLocation() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, dataDir, clonesDir, clonesSensor)
+}
+
+func ServerClonesLocation() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "ClonesLocation() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, dataDir, clonesDir, clonesServer)
 }
 
 func SessionLocation() string {

@@ -82,6 +82,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	api.Use(isAuthenticatedWithToken)
 	api.HandleFunc("/config.json", handlers.GetConfig).Methods("GET")
 	api.HandleFunc("/event.json", handlers.PostEvent).Methods("POST")
+	api.HandleFunc("/database/{dbname}", handlers.GetDatabase).Methods("POST")
 
 	// mod has its own middleware chain
 	// protected, can't process unless logged in and setup is complete

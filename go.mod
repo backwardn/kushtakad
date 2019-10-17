@@ -12,6 +12,7 @@ require (
 	github.com/asdine/storm v2.1.2+incompatible
 	github.com/boltdb/bolt v1.3.1
 	github.com/dgraph-io/badger v1.6.0
+	github.com/etcd-io/bbolt v1.3.3
 	github.com/fatih/color v1.7.0
 	github.com/glendc/go-external-ip v0.0.0-20170425150139-139229dcdddd
 	github.com/go-acme/lego v2.7.2+incompatible // indirect

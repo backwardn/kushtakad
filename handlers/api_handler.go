@@ -2,13 +2,16 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/asdine/storm"
+	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
+	"go.etcd.io/bbolt"
 
 	"github.com/kushtaka/kushtakad/events"
 	"github.com/kushtaka/kushtakad/models"
@@ -17,6 +20,7 @@ import (
 	"github.com/kushtaka/kushtakad/service/telnet"
 	"github.com/kushtaka/kushtakad/service/webserver"
 	"github.com/kushtaka/kushtakad/state"
+	"github.com/kushtaka/kushtakad/storage"
 )
 
 func GetConfig(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +55,55 @@ func GetConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.Render.JSON(w, http.StatusOK, svm)
+	return
+}
+
+func GetDatabase(w http.ResponseWriter, r *http.Request) {
+	var sensor models.Sensor
+	var apiKey string
+	app, err := state.Restore(r)
+	if err != nil {
+		app.Render.JSON(w, 404, err)
+		return
+	}
+
+	token, ok := r.Header["Authorization"]
+	if ok && len(token) >= 1 {
+		apiKey = token[0]
+		apiKey = strings.TrimPrefix(apiKey, "Bearer ")
+	}
+
+	app.DB.One("ApiKey", apiKey, &sensor)
+	// TODO: add constant time compare
+	// update: not needed, handled in middleware
+	if sensor.ApiKey != apiKey {
+		log.Debug("Api key does NOT match")
+		app.Render.JSON(w, 404, err)
+		return
+	}
+
+	v := mux.Vars(r)
+	dbname := v["dbname"]
+	db, err := storage.MustDBWithLocationAndName(state.ServerClonesLocation(), dbname)
+	if err != nil {
+		app.Render.JSON(w, 404, err)
+		return
+	}
+	defer db.Close()
+
+	err = db.Bolt.View(func(tx *bbolt.Tx) error {
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, dbname))
+		w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))
+		_, err := tx.WriteTo(w)
+		return err
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	return
 }
 
