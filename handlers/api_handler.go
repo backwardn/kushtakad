@@ -59,25 +59,10 @@ func GetConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDatabase(w http.ResponseWriter, r *http.Request) {
-	var sensor models.Sensor
-	var apiKey string
+	log.Debug("Start")
 	app, err := state.Restore(r)
 	if err != nil {
-		app.Render.JSON(w, 404, err)
-		return
-	}
-
-	token, ok := r.Header["Authorization"]
-	if ok && len(token) >= 1 {
-		apiKey = token[0]
-		apiKey = strings.TrimPrefix(apiKey, "Bearer ")
-	}
-
-	app.DB.One("ApiKey", apiKey, &sensor)
-	// TODO: add constant time compare
-	// update: not needed, handled in middleware
-	if sensor.ApiKey != apiKey {
-		log.Debug("Api key does NOT match")
+		log.Error(err)
 		app.Render.JSON(w, 404, err)
 		return
 	}
@@ -86,6 +71,7 @@ func GetDatabase(w http.ResponseWriter, r *http.Request) {
 	dbname := v["dbname"]
 	db, err := storage.MustDBWithLocationAndName(state.ServerClonesLocation(), dbname)
 	if err != nil {
+		log.Error(err)
 		app.Render.JSON(w, 404, err)
 		return
 	}
@@ -100,9 +86,11 @@ func GetDatabase(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
+		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	log.Debug("End")
 
 	return
 }

@@ -176,7 +176,7 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 
 			newdbname := fmt.Sprintf("%d_%s.db", httpw.Port, httpw.FQDN)
 
-			err = DownloadDatabase(host, key, httpw.FQDN, newdbname)
+			err = HTTPDownloadDatabase(host, key, httpw.FQDN, newdbname)
 			if err != nil {
 				log.Fatal(err)
 				return nil, err
@@ -200,16 +200,18 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 	return svm, nil
 }
 
-func DownloadDatabase(host, key, dbname, newdbname string) error {
-	log.Debug("Downloading Clone DB %s", dbname)
+func HTTPDownloadDatabase(host, key, dbname, newdbname string) error {
+	log.Debugf("Downloading Clone DB %s and saving as %s", dbname, newdbname)
 	url := fmt.Sprintf("%s%s%s", host, "/api/v1/database/", dbname)
 
 	spaceClient := http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * 60,
 	}
 
+	log.Debugf("The url we are requesting %s", url)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
@@ -217,23 +219,33 @@ func DownloadDatabase(host, key, dbname, newdbname string) error {
 
 	resp, err := spaceClient.Do(req)
 	if err != nil {
+		log.Error(err)
 		return err
+	}
+
+	if resp.StatusCode != 200 {
+		msg := fmt.Sprintf("StatusCode want %d got %d", 200, resp.StatusCode)
+		log.Error(msg)
+		return errors.New(msg)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
 	fullpath := filepath.Join(state.SensorClonesLocation(), newdbname)
 	f, err := os.OpenFile(fullpath, os.O_CREATE|os.O_RDWR, 0660)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 	defer f.Close()
 
 	_, err = f.Write(body)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 

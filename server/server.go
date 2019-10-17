@@ -82,7 +82,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	api.Use(isAuthenticatedWithToken)
 	api.HandleFunc("/config.json", handlers.GetConfig).Methods("GET")
 	api.HandleFunc("/event.json", handlers.PostEvent).Methods("POST")
-	api.HandleFunc("/database/{dbname}", handlers.GetDatabase).Methods("POST")
+	api.HandleFunc("/database/{dbname}", handlers.GetDatabase).Methods("GET")
 
 	// mod has its own middleware chain
 	// protected, can't process unless logged in and setup is complete
@@ -216,6 +216,7 @@ func isAuthenticated(next http.Handler) http.Handler {
 
 func isAuthenticatedWithToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debug("start")
 		var apiKey string
 		app := r.Context().Value(state.AppStateKey).(*state.App)
 		token, ok := r.Header["Authorization"]
@@ -231,6 +232,7 @@ func isAuthenticatedWithToken(next http.Handler) http.Handler {
 			return
 		}
 
+		log.Debug("end")
 		next.ServeHTTP(w, r)
 	})
 }
