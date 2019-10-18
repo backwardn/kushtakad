@@ -38,12 +38,10 @@ func GetConfig(w http.ResponseWriter, r *http.Request) {
 		apiKey = strings.TrimPrefix(apiKey, "Bearer ")
 	}
 
-	app.DB.One("ApiKey", apiKey, &sensor)
-	// TODO: add constant time compare
-	// update: not needed, handled in middleware
-	if sensor.ApiKey != apiKey {
-		log.Debug("Api key does NOT match")
-		app.Render.JSON(w, 404, err)
+	err = app.DB.One("ApiKey", apiKey, &sensor)
+	if err != nil {
+		log.Debug(err)
+		app.Render.JSON(w, 200, err)
 		return
 	}
 

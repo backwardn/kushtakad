@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/kushtaka/kushtakad/clone"
 	"github.com/kushtaka/kushtakad/models"
@@ -98,6 +99,7 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ffqdn := r.FormValue("fqdn")
+
 	fqdn, err := url.ParseRequestURI(ffqdn)
 	if err != nil {
 		msg := fmt.Sprintf("The fqdn has issues > %s", err.Error())
@@ -105,7 +107,16 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redir, 302)
 		return
 	}
-	log.Debug(ffqdn)
+
+	depth, err := strconv.Atoi(r.FormValue("http-depth"))
+	if err != nil {
+		msg := fmt.Sprintf("The depth param has issues > %s", err.Error())
+		app.Fail(msg)
+		http.Redirect(w, r, redir, 302)
+		return
+	}
+
+	log.Debug(depth)
 
 	//go func() {
 	db, err := storage.MustDBWithLocationAndName(state.ServerClonesLocation(), fqdn.Hostname())
@@ -115,14 +126,16 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = clone.Run(ffqdn, 2, db)
+	err = clone.Run(ffqdn, depth, db)
 	if err != nil {
-		log.Error(err)
+		msg := fmt.Sprintf("Unable to run the clone process > %s", err.Error())
+		log.Error(msg)
+		app.Fail(msg)
+		http.Redirect(w, r, redir, 302)
 		return
 	}
 	//}()
 
-	mclone := &models.Clone{}
 	tx, err := app.DB.Begin(true)
 	if err != nil {
 		app.Fail(err.Error())
@@ -131,6 +144,7 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
+	mclone := &models.Clone{}
 	sc := models.NewClone()
 	sc.Hostname = fqdn.Hostname()
 	// TODO: horrible, fix soon

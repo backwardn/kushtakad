@@ -81,12 +81,11 @@ type Redirect struct {
 }
 
 var URI, SCHEME, DOMAIN, PRIMARYLINK string
+var DEPTH int
 
 func Run(user_submitted_uri string, user_submitted_depth int, origdb *storm.DB) error {
 	log.Debug("begin clone")
 	db = origdb
-	var DEPTH int
-
 	var err error
 	URI = user_submitted_uri
 	DEPTH = user_submitted_depth
