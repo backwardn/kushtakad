@@ -168,21 +168,6 @@ func (s FtpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) err
 		log.Debug(err)
 	}
 
-	/*
-		go func() {
-			for msg := range s.recv {
-				s.c.Send(event.New(
-					services.EventOptions,
-					event.Category("ftp"),
-					event.SourceAddr(conn.RemoteAddr()),
-					event.DestinationAddr(conn.LocalAddr()),
-					event.Custom("ftp.sessionid", ftpConn.sessionid),
-					event.Custom("ftp.command", strings.Trim(msg, "\r\n")),
-				))
-			}
-		}()
-	*/
-
 	ftpConn.Serve()
 
 	return nil
