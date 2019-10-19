@@ -9,7 +9,7 @@ window.onload = function() {
     canvas.width = window.innerWidth;
     // TODO: jared
     // remove this comment to render
-    // renderScene(); 
+    renderScene(); 
   }
 
   resizeCanvas();

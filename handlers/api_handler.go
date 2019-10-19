@@ -163,8 +163,6 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		apiKey = strings.TrimPrefix(apiKey, "Bearer ")
 	}
 
-	// TODO: add constant time compare
-	// update: not needed, handled in middleware
 	app.DB.One("ApiKey", apiKey, &sensor)
 	if sensor.ApiKey != apiKey {
 		app.Render.JSON(w, 404, err)
