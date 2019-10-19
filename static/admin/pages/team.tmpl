@@ -30,7 +30,10 @@
                         <tbody>
                             <thead><tr><th>Email</th><th>Delete?</th></tr></thead>
                             {{ range $member := .Team.Members }}
-                                    <tr><td>{{ $member }}</td><td>delete</td></tr>
+                                    <tr>
+                                        <td>{{ $member }}</td>
+                                        <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteMemberModal( {{ $member }} )"><i class="material-icons">delete_sweep</i></a></td>
+                                    </tr>
                             {{ end }}
                         </tbody>
                     </table>
