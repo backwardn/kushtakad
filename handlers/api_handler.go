@@ -165,8 +165,9 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		apiKey = strings.TrimPrefix(apiKey, "Bearer ")
 	}
 
-	app.DB.One("ApiKey", apiKey, &sensor)
-	if sensor.ApiKey != apiKey {
+	err = app.DB.One("ApiKey", apiKey, &sensor)
+	if err != nil {
+		log.Error(err)
 		app.Render.JSON(w, 404, err)
 		return
 	}
@@ -187,10 +188,25 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DB.Save(&em)
+	tx, err := app.DB.Begin(true)
 	if err != nil {
 		log.Error(err)
-		app.Render.JSON(w, 404, err)
+		app.Render.JSON(w, 200, err)
+		return
+	}
+	defer tx.Rollback()
+
+	err = tx.Save(&em)
+	if err != nil {
+		log.Error(err)
+		app.Render.JSON(w, 200, err)
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Error(err)
+		app.Render.JSON(w, 200, err)
 		return
 	}
 

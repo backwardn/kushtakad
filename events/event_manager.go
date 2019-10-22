@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,9 +22,10 @@ const ongoingEvent = "ongoing"
 type EventManager struct {
 	ID                 int64  `storm:"id,increment,index"`
 	State              string `json:"type"` // new, ongoing
-	AttackerNetwork    string
-	AttackerIP         string
-	SensorID           int64 `json:"sensor_id"`
+	AttackerNetwork    string `storm:"index"`
+	AttackerIP         string `storm:"index"`
+	AttackerPort       string `storm:"index"`
+	SensorID           int64  `json:"sensor_id"`
 	SensorType         string
 	SensorPort         int
 	EventStart         time.Time   `storm:"index"`
@@ -51,7 +53,9 @@ func (em *EventManager) SendEvent(state, host, key string, addr net.Addr) error 
 	t := time.Now()
 	em.State = state
 	em.AttackerNetwork = addr.Network()
-	em.AttackerIP = addr.String()
+	s := strings.Split(addr.String(), ":")
+	em.AttackerIP = s[0]
+	em.AttackerPort = s[1]
 	em.AttackerLastProbed = time.Now()
 	url := host + "/api/v1/event.json"
 
