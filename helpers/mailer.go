@@ -66,7 +66,7 @@ func NewTestEvent(db *storm.DB, box *packr.Box) *TestEvent {
 
 func NewMailer(db *storm.DB, box *packr.Box) *Mailer {
 	smtp := &models.Smtp{}
-	err := db.One("ID", smtpID, smtp)
+	err := db.One("ID", 1, smtp)
 	if err != nil {
 		log.Debugf("Smtp object not found in database %v", err)
 	}
@@ -128,7 +128,7 @@ func (te *TestEvent) SendTestEvent() error {
 
 }
 
-func (m *Mailer) SendSensorEvent(eventid, furl, hashid, state, emailtext string, tt time.Time) error {
+func (m *Mailer) SendSensorEvent(eventid int64, furl, state, emailtext string, tt time.Time) error {
 
 	fname := "event_sensor.tmpl"
 	s, err := models.NewSettings()
@@ -138,10 +138,9 @@ func (m *Mailer) SendSensorEvent(eventid, furl, hashid, state, emailtext string,
 
 	m.Subject = fmt.Sprintf("%s : %s", furl, eventid)
 	m.Text = fmt.Sprintf("Event: %s <br>\n\nState: %s<br>\n\n", furl, state)
-	m.EventLink = s.URI + "/kushtaka/%s"
 	m.TemplateName = "EventSensor"
 	m.TemplateFile = fname
-	m.EventLink = fmt.Sprintf(m.EventLink, m.EventID)
+	m.EventLink = fmt.Sprintf("%s/kustaka/event/%s", s.URI, m.EventID)
 
 	e := email.NewEmail()
 	e.From = m.Smtp.Email

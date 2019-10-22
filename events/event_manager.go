@@ -47,6 +47,7 @@ func (em *EventManager) SendEvent(state, host, key string, addr net.Addr) error 
 	em.mu.Lock()
 	defer em.mu.Unlock()
 
+	log.Debugf("host %s key %s", host, key)
 	t := time.Now()
 	em.State = state
 	em.AttackerNetwork = addr.Network()

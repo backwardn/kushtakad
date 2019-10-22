@@ -1,3 +1,5 @@
+package webserver
+
 // Copyright 2016-2019 DutchSec (https://dutchsec.com/)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package webserver
 
 import (
 	"bufio"
@@ -25,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/asdine/storm"
+	"github.com/kushtaka/kushtakad/events"
 )
 
 // Http is a placeholder
@@ -138,6 +140,12 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 				return err
 			}
 
+			em := events.NewEventManager("http", s.Port, s.SensorID)
+			err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
+			if err != nil {
+				log.Debug(err)
+			}
+
 		} else {
 
 			// now we check to see if the URI is a page in the dataset
@@ -166,6 +174,12 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 					log.Debug(err)
 					return err
 				}
+
+				em := events.NewEventManager("http", s.Port, s.SensorID)
+				err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
+				if err != nil {
+					log.Debug(err)
+				}
 			} else {
 
 				var host string
@@ -193,8 +207,15 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 					log.Debug(err)
 					return err
 				}
+
+				em := events.NewEventManager("http", s.Port, s.SensorID)
+				err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
+				if err != nil {
+					log.Debug(err)
+				}
 			}
 		}
+
 	}
 }
 

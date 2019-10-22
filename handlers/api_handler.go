@@ -14,6 +14,7 @@ import (
 	"go.etcd.io/bbolt"
 
 	"github.com/kushtaka/kushtakad/events"
+	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/service"
 	"github.com/kushtaka/kushtakad/service/ftp"
@@ -191,6 +192,16 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		app.Render.JSON(w, 404, err)
 		return
 	}
+
+	m := helpers.NewMailer(app.DB, app.Box)
+	body := fmt.Sprintf("A [%s] event from the IP [%s] has been detected. Please investigate.", em.State, em.AttackerIP)
+	log.Debug(body)
+	go func() {
+		err := m.SendSensorEvent(em.ID, app.View.URI, "new", body, em.LastNotification)
+		if err != nil {
+			log.Errorf("SendSensorEvent failed %v", err)
+		}
+	}()
 
 	app.Render.JSON(w, http.StatusOK, "success")
 	return

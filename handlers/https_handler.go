@@ -156,26 +156,3 @@ func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
 	log.Debug("End")
 	return
 }
-
-/*
-app.Reboot <- true
-var wg sync.WaitGroup
-
-wg.Add(1)
-go func() {
-	magic := certmagic.NewDefault()
-	magic.CA = certmagic.LetsEncryptStagingCA
-	magic.Email = "jfolkins@gmail.com"
-	magic.Agreed = true
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		log.Debug("Lookit my cool website over HTTPS!")
-		wg.Done()
-	})
-	err = http.ListenAndServe(":80", magic.HTTPChallengeHandler(mux))
-	if err != nil {
-		log.Debug(err)
-	}
-}()
-wg.Wait()
-*/
