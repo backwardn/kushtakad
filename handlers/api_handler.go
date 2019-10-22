@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/asdine/storm"
 	"github.com/gorilla/mux"
@@ -193,13 +194,24 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := helpers.NewMailer(app.DB, app.Box)
-	body := fmt.Sprintf("A [%s] event from the IP [%s] has been detected. Please investigate.", em.State, em.AttackerIP)
-	log.Debug(body)
+	var team models.Team
+	app.DB.One("ID", sensor.TeamID, &team)
+	if sensor.ApiKey != apiKey {
+		app.Render.JSON(w, 404, err)
+		return
+	}
+
+	e := helpers.NewEvent(app.DB, app.Box)
+	e.Email.Body = fmt.Sprintf("Event: %s <br>\n\nState: %s<br>\n\n", sensor.Name, em.State)
+	e.Email.Subject = fmt.Sprintf("%s: ID:%d Time:%s", "Kushtaka Event Detected", em.ID, time.Now())
+	e.Email.To = team.Members
+	e.Email.Filename = "sensor_event.tmpl"
+	e.Email.TemplateName = "SensorEvent"
+
 	go func() {
-		err := m.SendSensorEvent(em.ID, app.View.URI, "new", body, em.LastNotification)
+		err := e.SendEvent()
 		if err != nil {
-			log.Errorf("SendSensorEvent failed %v", err)
+			log.Error(err)
 		}
 	}()
 

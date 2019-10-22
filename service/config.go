@@ -141,7 +141,6 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 			tel.ApiKey = key
 			sm.Service = tel
 			svm = append(svm, sm)
-			log.Infof("Did it decode? %v", tel)
 		case "ftp":
 			sm := &ServiceMap{
 				Type:       v.Type,
@@ -160,7 +159,6 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 			ftp.ConfigureAndRun()
 			sm.Service = ftp
 			svm = append(svm, sm)
-			log.Infof("Did it decode? %v", ftp)
 		case "http":
 			sm := &ServiceMap{
 				Type:       v.Type,
@@ -190,10 +188,12 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 
 			httpw.SetHost(host)
 			httpw.SetApiKey(key)
+			httpw.Host = host
+			httpw.ApiKey = key
+
 			sm.Service = httpw
 			sm.DB = db
 			svm = append(svm, sm)
-			log.Infof("Did the service decode? %v", httpw)
 		}
 	}
 

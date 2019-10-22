@@ -109,14 +109,14 @@ func PostSendTestEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	te := helpers.NewTestEvent(app.DB, app.Box)
+	te := helpers.NewEvent(app.DB, app.Box)
 	te.Email.Subject = fmt.Sprintf("%s : %s", testSubject, time.Now())
 	te.Email.To = []string{app.User.Email}
 	te.Email.Filename = testFilename
 	te.Email.TemplateName = testTemplateName
 	te.Mailer.Smtp = smtp
 
-	err = te.SendTestEvent()
+	err = te.SendEvent()
 	if err != nil {
 		log.Errorf("Failed to send email %s", err)
 		app.Render.JSON(w, 200, NewResponse("failed", "Failed to send email", err))

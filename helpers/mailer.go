@@ -8,7 +8,6 @@ import (
 	"net/smtp"
 	"path/filepath"
 	"text/template"
-	"time"
 
 	"github.com/asdine/storm"
 
@@ -40,7 +39,7 @@ type SensorEvent struct {
 type TokenEvent struct {
 }
 
-type TestEvent struct {
+type Event struct {
 	Mailer *Mailer
 
 	Email *Email
@@ -57,8 +56,8 @@ type Email struct {
 	URI          string
 }
 
-func NewTestEvent(db *storm.DB, box *packr.Box) *TestEvent {
-	return &TestEvent{
+func NewEvent(db *storm.DB, box *packr.Box) *Event {
+	return &Event{
 		Mailer: NewMailer(db, box),
 		Email:  &Email{},
 	}
@@ -96,7 +95,7 @@ func buildTemplate(email *Email, box *packr.Box) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func (te *TestEvent) SendTestEvent() error {
+func (te *Event) SendEvent() error {
 	tmpl, err := buildTemplate(te.Email, te.Mailer.Box)
 	if err != nil {
 		return err
@@ -126,56 +125,4 @@ func (te *TestEvent) SendTestEvent() error {
 	log.Debug(err)
 	return err
 
-}
-
-func (m *Mailer) SendSensorEvent(eventid int64, furl, state, emailtext string, tt time.Time) error {
-
-	fname := "event_sensor.tmpl"
-	s, err := models.NewSettings()
-	if err != nil {
-		return err
-	}
-
-	m.Subject = fmt.Sprintf("%s : %s", furl, eventid)
-	m.Text = fmt.Sprintf("Event: %s <br>\n\nState: %s<br>\n\n", furl, state)
-	m.TemplateName = "EventSensor"
-	m.TemplateFile = fname
-	m.EventLink = fmt.Sprintf("%s/kustaka/event/%s", s.URI, m.EventID)
-
-	e := email.NewEmail()
-	e.From = m.Smtp.Email
-	e.To = []string{emailtext}
-
-	fp := filepath.Join("admin", "email", fname)
-	mt, err := m.Box.Find(fp)
-	if err != nil {
-		log.Debugf("Unable to find template in packr box %v", err)
-	}
-
-	t, err := template.New("MT").Parse(string(mt))
-	if err != nil {
-		return err
-	}
-	var out bytes.Buffer
-	err = t.ExecuteTemplate(&out, m.TemplateName, m)
-	e.HTML = []byte(out.String())
-
-	hostport := fmt.Sprintf("%s:%s", m.Smtp.Host, m.Smtp.Port)
-	if m.Smtp.Username != "" {
-		err = e.Send(
-			hostport,
-			smtp.PlainAuth(
-				"",
-				m.Smtp.Username,
-				m.Smtp.Password,
-				m.Smtp.Host,
-			),
-		)
-	} else {
-		err = e.Send(
-			hostport,
-			nil,
-		)
-	}
-	return err
 }
