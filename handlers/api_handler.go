@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/asdine/storm"
 	"github.com/gorilla/mux"
@@ -24,6 +23,20 @@ import (
 	"github.com/kushtaka/kushtakad/state"
 	"github.com/kushtaka/kushtakad/storage"
 )
+
+const bodyTmpl = `
+			SensorName: %s
+			<br>
+			SensorType: %s
+			<br>
+			SensorPort: %d
+			<br>
+			AttackerIP: %s
+			<br>
+			AttackerPort: %s
+			<br>
+			EventState: %s
+			`
 
 func GetConfig(w http.ResponseWriter, r *http.Request) {
 	var sensor models.Sensor
@@ -188,6 +201,10 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// configure eventmanager
+	em.AddMutex()
+	em.SetState(app.DB)
+
 	tx, err := app.DB.Begin(true)
 	if err != nil {
 		log.Error(err)
@@ -217,19 +234,22 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e := helpers.NewEvent(app.DB, app.Box)
-	e.Email.Body = fmt.Sprintf("Event: %s <br>\n\nState: %s<br>\n\n", sensor.Name, em.State)
-	e.Email.Subject = fmt.Sprintf("%s: ID:%d Time:%s", "Kushtaka Event Detected", em.ID, time.Now())
-	e.Email.To = team.Members
-	e.Email.Filename = "sensor_event.tmpl"
-	e.Email.TemplateName = "SensorEvent"
+	log.Debug(em.State)
 
-	go func() {
-		err := e.SendEvent()
-		if err != nil {
-			log.Error(err)
-		}
-	}()
+	if em.State == "new" {
+		go func() {
+			e := helpers.NewEvent(app.DB, app.Box)
+			e.Email.Body = fmt.Sprintf(bodyTmpl, sensor.Name, em.SensorType, em.SensorPort, em.AttackerIP, em.AttackerPort, em.State)
+			e.Email.Subject = fmt.Sprintf("ID:%d - Kushtaka Event Detected", em.ID)
+			e.Email.To = team.Members
+			e.Email.Filename = "sensor_event.tmpl"
+			e.Email.TemplateName = "SensorEvent"
+			err := e.SendEvent()
+			if err != nil {
+				log.Errorf("SendEvent appeared to fail > %v", err)
+			}
+		}()
+	}
 
 	app.Render.JSON(w, http.StatusOK, "success")
 	return

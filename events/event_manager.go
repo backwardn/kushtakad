@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/asdine/storm"
+	"github.com/asdine/storm/q"
 	"github.com/op/go-logging"
 )
 
@@ -20,18 +22,20 @@ const newEvent = "new"
 const ongoingEvent = "ongoing"
 
 type EventManager struct {
-	ID                 int64  `storm:"id,increment,index"`
-	State              string `json:"type"` // new, ongoing
-	AttackerNetwork    string `storm:"index"`
-	AttackerIP         string `storm:"index"`
-	AttackerPort       string `storm:"index"`
-	SensorID           int64  `json:"sensor_id"`
-	SensorType         string
-	SensorPort         int
-	EventStart         time.Time   `storm:"index"`
-	AttackerLastProbed time.Time   `storm:"index"`
-	LastNotification   time.Time   `json:"-"`
-	mu                 *sync.Mutex `json:"-"`
+	ID              int64  `storm:"id,increment,index"`
+	State           string `json:"type"` // new, ongoing
+	AttackerNetwork string `storm:"index"`
+	AttackerIP      string `storm:"index"`
+	AttackerPort    string `storm:"index"`
+	SensorID        int64  `json:"sensor_id"`
+	SensorType      string
+	SensorPort      int
+	Created         time.Time   `storm:"index"`
+	mu              *sync.Mutex `json:"-"`
+}
+
+func (em *EventManager) AddMutex() {
+	em.mu = &sync.Mutex{}
 }
 
 func NewEventManager(st string, sp int, sid int64) *EventManager {
@@ -41,7 +45,7 @@ func NewEventManager(st string, sp int, sid int64) *EventManager {
 		SensorID:   sid,
 		SensorPort: sp,
 		SensorType: st,
-		EventStart: t,
+		Created:    t,
 	}
 }
 
@@ -50,13 +54,12 @@ func (em *EventManager) SendEvent(state, host, key string, addr net.Addr) error 
 	defer em.mu.Unlock()
 
 	log.Debugf("host %s key %s", host, key)
-	t := time.Now()
+	s := strings.Split(addr.String(), ":")
 	em.State = state
 	em.AttackerNetwork = addr.Network()
-	s := strings.Split(addr.String(), ":")
 	em.AttackerIP = s[0]
 	em.AttackerPort = s[1]
-	em.AttackerLastProbed = time.Now()
+	em.Created = time.Now()
 	url := host + "/api/v1/event.json"
 
 	spaceClient := http.Client{
@@ -88,8 +91,28 @@ func (em *EventManager) SendEvent(state, host, key string, addr net.Addr) error 
 	}
 	log.Debug(body)
 
-	em.LastNotification = t
-
 	return nil
+
+}
+
+func (em *EventManager) SetState(db *storm.DB) {
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	em.State = "new"
+
+	var targets []EventManager
+	past := time.Now().Add(time.Second * time.Duration(-30))
+	err := db.Select(
+		q.Eq("AttackerIP", em.AttackerIP),
+		q.Gte("Created", past)).Find(&targets)
+
+	if err != nil {
+		log.Errorf("Targets are %v", err)
+	}
+
+	if len(targets) > 0 {
+		em.State = "ongoing"
+	}
 
 }
