@@ -1,8 +1,11 @@
-##### Status 
+### For the beta the following documentation will be the primary resource
 
-Currently undergoing rapid iteration
+##### GitBook
+
+[gitbook.io](https://jfolkins.gitbook.io/kushtaka/)
+
+##### Site
+
+[kushtaka.org](https://www.kushtaka.org)
 
 
-##### ETA for Beta Release 
-
-October 25th
