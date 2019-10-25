@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -55,13 +56,15 @@ func NewSocket(sc SocketConfig) (Listener, error) {
 func (sl *socketListener) Start(ctx context.Context) error {
 	for _, address := range sl.Addresses {
 		if _, ok := address.(*net.TCPAddr); ok {
-			l, err := net.Listen(address.Network(), address.String())
+			s := strings.Split(address.String(), ":")
+			addy := fmt.Sprintf("0.0.0.0:%s", s[1])
+			l, err := net.Listen(address.Network(), addy)
 			if err != nil {
 				fmt.Println(color.RedString("Error starting listener: %s", err.Error()))
 				continue
 			}
 
-			log.Infof("Listener started: tcp/%s", address)
+			log.Infof("Listener started: tcp/%s", addy)
 
 			go func() {
 				for {
