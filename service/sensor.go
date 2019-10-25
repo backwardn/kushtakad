@@ -252,11 +252,13 @@ func compareAddr(addr1 net.Addr, addr2 net.Addr) bool {
 			return false
 		}
 
-		if ta1.IP == nil {
-		} else if ta2.IP == nil {
-		} else if !ta1.IP.Equal(ta2.IP) {
-			return false
-		}
+		/*
+			if ta1.IP == nil {
+			} else if ta2.IP == nil {
+			} else if !ta1.IP.Equal(ta2.IP) {
+				return false
+			}
+		*/
 
 		return true
 	} else if ua1, ok := addr1.(*net.UDPAddr); ok {
