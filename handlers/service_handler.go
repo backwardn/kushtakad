@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/asdine/storm"
@@ -212,9 +212,12 @@ func CreateService(stype string, sensor models.Sensor, r *http.Request, tx storm
 			}
 		}
 
-		http.FQDN = strings.TrimLeft(http.FQDN, "http://")
-		http.FQDN = strings.TrimLeft(http.FQDN, "https://")
+		url, err := url.Parse(http.FQDN)
+		if err != nil {
+			return cfg, fmt.Errorf("Unable to parse domain name : %w", err)
+		}
 
+		http.FQDN = url.Hostname()
 		cfg.Service = http
 		cfg.SensorID = sensor.ID
 		cfg.Type = stype
