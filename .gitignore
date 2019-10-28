@@ -23,6 +23,7 @@ packrd
 data/
 app/
 build/
+dist/
 .idea/
 .vscode/
 .grifter/
