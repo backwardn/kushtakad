@@ -140,7 +140,7 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 				return err
 			}
 
-			em := events.NewEventManager("http", s.Port, s.SensorID)
+			em := events.NewSensorEventManager("http", s.Port, s.SensorID)
 			err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
 			if err != nil {
 				log.Debug(err)

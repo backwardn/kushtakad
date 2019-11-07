@@ -24,10 +24,10 @@ func HTTPS(settings *models.Settings, mux http.Handler, db *storm.DB) (*http.Ser
 	var lnMu sync.Mutex
 	var err error
 
-	domain := models.Domain{FQDN: settings.LeFQDN}
+	domain := models.Domain{FQDN: settings.FQDN}
 	le := models.NewLE(state.AcmeProdLocation(), domain, db)
 	cfg := le.Magic
-	err = cfg.Manage([]string{settings.LeFQDN})
+	err = cfg.Manage([]string{settings.FQDN})
 	if err != nil {
 		log.Error(err)
 		return nil, nil
@@ -80,7 +80,7 @@ func HTTPS(settings *models.Settings, mux http.Handler, db *storm.DB) (*http.Ser
 	}
 
 	log.Debugf("%v Serving HTTP->HTTPS on %s and %s",
-		settings.LeFQDN, hln.Addr(), hsln.Addr())
+		settings.FQDN, hln.Addr(), hsln.Addr())
 
 	go httpServer.Serve(hln)
 	go httpsServer.Serve(hsln)
@@ -89,12 +89,10 @@ func HTTPS(settings *models.Settings, mux http.Handler, db *storm.DB) (*http.Ser
 }
 
 func HTTP(settings *models.Settings, n *negroni.Negroni) *http.Server {
-	env := os.Getenv("KUSHTAKA_ENV")
-
 	go func() {
 		time.Sleep(1 * time.Second)
 		log.Infof("Listening on...%s\n", settings.Host)
-		if env != "development" {
+		if os.Getenv("KUSHTAKA_ENV") != "development" {
 			err := browser.OpenURL(settings.URI)
 			if err != nil {
 				log.Error(err)
@@ -102,10 +100,9 @@ func HTTP(settings *models.Settings, n *negroni.Negroni) *http.Server {
 		}
 	}()
 
-	log.Debugf("settings.Host %s", settings.Host)
-	log.Debugf("settings.URI %s", settings.URI)
+	log.Debugf("settings. Port %s, Host %s, URI %s", settings.Port, settings.Host, settings.URI)
 
-	srv := &http.Server{Addr: settings.Port, Handler: n}
+	srv := &http.Server{Addr: fmt.Sprintf("%s:%s", settings.Host, settings.Port), Handler: n}
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatalf("The http server died :%s", err)

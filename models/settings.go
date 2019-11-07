@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 
 	"github.com/gorilla/securecookie"
@@ -16,37 +15,38 @@ type Settings struct {
 	SessionHash  []byte `json:"session_hash"`
 	SessionBlock []byte `json:"session_block"`
 	CsrfHash     []byte `json:"csrf_hash"`
-	Host         string `json:"host"`
-	Scheme       string `json:"scheme"`
-	Port         string `json:"port"`
-	URI          string `json:"base_uri_for_webapp"`
-	LeEnabled    bool   `json:"lets_encrypt_enabled"`
-	LeFQDN       string `json:"lets_encrypt_fqdn"`
+	LeEnabled    bool   `json:"lets_encrypt"`
+	URI          string `json:"uri"`
+	FQDN         string `json:"fqdn"`
+	Host         string `json:"-"`
+	Port         string `json:"-"`
+	Scheme       string `json:"-"`
 }
 
 func (s *Settings) BuildURI() string {
-	if len(s.Host) == 0 {
-		if os.Getenv("KUSHTAKA_ENV") == "development" {
-			s.Host = "localhost"
-			s.Port = ":8080"
-		} else {
-			ip := GetOutboundIP().String()
-			s.Host = fmt.Sprintf("%s", ip)
-			s.Port = ":8080"
-		}
-	}
-
-	s.Scheme = "http"
-	if s.LeEnabled {
-		s.Port = ""
-		s.Scheme = "https"
-	}
-
+	host := "0.0.0.0"
+	port := "8080"
+	scheme := "http"
 	if os.Getenv("KUSHTAKA_ENV") == "development" {
-		s.URI = fmt.Sprintf("%s://%s%s", "http", "localhost", ":3000")
-	} else if len(s.URI) == 0 {
-		s.URI = fmt.Sprintf("%s://%s%s", s.Scheme, s.Host, s.Port)
+		host = "localhost"
+		port = "8080"
+		scheme = "http"
+	} else if s.LeEnabled {
+		host = "0.0.0.0"
+		port = "80"
+		scheme = "https"
 	}
+
+	s.Host = host
+	s.Port = port
+	s.Scheme = scheme
+
+	if len(s.FQDN) > 4 {
+		s.URI = fmt.Sprintf("%s://%s:%s", scheme, s.FQDN, port)
+	} else {
+		s.URI = fmt.Sprintf("%s://%s:%s", scheme, host, port)
+	}
+
 	return s.URI
 }
 
@@ -107,6 +107,7 @@ func NewSettings() (*Settings, error) {
 }
 
 // Get preferred outbound ip of this machine
+/*
 func GetOutboundIP() net.IP {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
@@ -118,3 +119,4 @@ func GetOutboundIP() net.IP {
 
 	return localAddr.IP
 }
+*/

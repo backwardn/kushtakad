@@ -23,7 +23,8 @@ const ongoingEvent = "ongoing"
 
 type EventManager struct {
 	ID              int64  `storm:"id,increment,index"`
-	State           string `json:"type"` // new, ongoing
+	State           string `json:"state"` // new, ongoing
+	Type            string `json:"type"`
 	AttackerNetwork string `storm:"index"`
 	AttackerIP      string `storm:"index"`
 	AttackerPort    string `storm:"index"`
@@ -36,6 +37,18 @@ type EventManager struct {
 
 func (em *EventManager) AddMutex() {
 	em.mu = &sync.Mutex{}
+}
+
+func NewSensorEventManager(st string, sp int, sid int64) *EventManager {
+	t := time.Now()
+	return &EventManager{
+		mu:         &sync.Mutex{},
+		Type:       "sensor",
+		SensorID:   sid,
+		SensorPort: sp,
+		SensorType: st,
+		Created:    t,
+	}
 }
 
 func NewEventManager(st string, sp int, sid int64) *EventManager {

@@ -162,7 +162,7 @@ func (s FtpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) err
 
 	ftpConn := s.server.newConn(conn, s.driver, s.recv)
 
-	em := events.NewEventManager("ftp", s.Port, s.SensorID)
+	em := events.NewSensorEventManager("ftp", s.Port, s.SensorID)
 	err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
 	if err != nil {
 		log.Debug(err)
