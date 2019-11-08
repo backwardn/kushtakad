@@ -24,7 +24,7 @@ import (
 	"github.com/kushtaka/kushtakad/storage"
 )
 
-const bodyTmpl = `
+const sensorEventTmpl = `
 			SensorName: %s
 			<br>
 			SensorType: %s
@@ -246,11 +246,11 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		go func() {
 			et := events.MapToEventSensor(em)
 			e := helpers.NewEvent(app.DB, app.Box)
-			e.Email.Body = fmt.Sprintf(bodyTmpl, sensor.Name, et.Type, et.Port, em.AttackerIP, et.AttackerPort, em.State)
+			e.Email.Body = fmt.Sprintf(sensorEventTmpl, sensor.Name, et.Type, et.Port, em.AttackerIP, et.AttackerPort, em.State)
 			e.Email.Subject = fmt.Sprintf("ID:%d - Kushtaka Event Detected", em.ID)
 			e.Email.To = team.Members
-			e.Email.Filename = "sensor_event.tmpl"
-			e.Email.TemplateName = "SensorEvent"
+			e.Email.Filename = "event.tmpl"
+			e.Email.TemplateName = "Event"
 			err := e.SendEvent()
 			if err != nil {
 				log.Errorf("SendEvent appeared to fail > %v", err)

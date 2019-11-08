@@ -27,7 +27,7 @@
                                 <td>{{ $v.AttackerNetwork }}</td>
                                 <td>{{ $v.AttackerIP }}</td>
                                 <td>{{ prettytime $v.Created }}</td>
-                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/sensor/{{ eventTypeID $v }}"><i class="material-icons">settings</i></a></td>
+                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/{{ $v.Type }}/{{ eventTypeID $v }}"><i class="material-icons">settings</i></a></td>
                             </tr>
                         {{ end }}
                     {{ end }}
