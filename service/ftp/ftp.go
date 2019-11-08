@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/asdine/storm"
 	"github.com/kushtaka/kushtakad/events"
@@ -162,8 +163,17 @@ func (s FtpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) err
 
 	ftpConn := s.server.newConn(conn, s.driver, s.recv)
 
-	em := events.NewSensorEventManager("ftp", s.Port, s.SensorID)
-	err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
+	split := strings.Split(conn.RemoteAddr().String(), ":")
+	network := conn.RemoteAddr().Network()
+	ip := split[0]
+	es := &events.EventSensor{
+		SensorID:     s.SensorID,
+		Type:         "ftp",
+		Port:         s.Port,
+		AttackerPort: split[1],
+	}
+	em := events.NewSensorEventManager(network, ip, es)
+	err := em.SendEvent("new", s.Host, s.ApiKey)
 	if err != nil {
 		log.Debug(err)
 	}

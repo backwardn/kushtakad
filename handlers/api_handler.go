@@ -193,12 +193,20 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var em events.EventManager
+	em := events.EventManager{
+		EventType: &events.EventSensor{},
+	}
 	err = json.Unmarshal(b, &em)
 	if err != nil {
 		log.Error(err)
 		app.Render.JSON(w, 404, err)
 		return
+	}
+
+	switch e := em.EventType.(type) {
+	case *events.EventSensor:
+		e.SensorID = sensor.ID
+		em.EventType = e
 	}
 
 	// configure eventmanager
@@ -234,12 +242,11 @@ func PostEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Debug(em.State)
-
 	if em.State == "new" {
 		go func() {
+			et := events.MapToEventSensor(em)
 			e := helpers.NewEvent(app.DB, app.Box)
-			e.Email.Body = fmt.Sprintf(bodyTmpl, sensor.Name, em.SensorType, em.SensorPort, em.AttackerIP, em.AttackerPort, em.State)
+			e.Email.Body = fmt.Sprintf(bodyTmpl, sensor.Name, et.Type, et.Port, em.AttackerIP, et.AttackerPort, em.State)
 			e.Email.Subject = fmt.Sprintf("ID:%d - Kushtaka Event Detected", em.ID)
 			e.Email.To = team.Members
 			e.Email.Filename = "sensor_event.tmpl"

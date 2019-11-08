@@ -43,6 +43,8 @@ func (s *Settings) BuildURI() string {
 
 	if len(s.FQDN) > 4 {
 		s.URI = fmt.Sprintf("%s://%s:%s", scheme, s.FQDN, port)
+	} else if os.Getenv("KUSHTAKA_ENV") == "development" {
+		s.URI = fmt.Sprintf("%s://%s:%s", scheme, host, "3000")
 	} else {
 		s.URI = fmt.Sprintf("%s://%s:%s", scheme, host, port)
 	}

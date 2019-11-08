@@ -140,8 +140,17 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 				return err
 			}
 
-			em := events.NewSensorEventManager("http", s.Port, s.SensorID)
-			err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
+			split := strings.Split(conn.RemoteAddr().String(), ":")
+			network := conn.RemoteAddr().Network()
+			ip := split[0]
+			es := &events.EventSensor{
+				SensorID:     s.SensorID,
+				Type:         s.Type,
+				Port:         s.Port,
+				AttackerPort: split[1],
+			}
+			em := events.NewSensorEventManager(network, ip, es)
+			err := em.SendEvent("new", s.Host, s.ApiKey)
 			if err != nil {
 				log.Debug(err)
 			}
@@ -175,8 +184,17 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 					return err
 				}
 
-				em := events.NewEventManager("http", s.Port, s.SensorID)
-				err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
+				split := strings.Split(conn.RemoteAddr().String(), ":")
+				network := conn.RemoteAddr().Network()
+				ip := split[0]
+				es := &events.EventSensor{
+					SensorID:     s.SensorID,
+					Type:         s.Type,
+					Port:         s.Port,
+					AttackerPort: split[1],
+				}
+				em := events.NewSensorEventManager(network, ip, es)
+				err := em.SendEvent("new", s.Host, s.ApiKey)
 				if err != nil {
 					log.Debug(err)
 				}
@@ -208,8 +226,17 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 					return err
 				}
 
-				em := events.NewEventManager("http", s.Port, s.SensorID)
-				err := em.SendEvent("new", s.Host, s.ApiKey, conn.RemoteAddr())
+				split := strings.Split(conn.RemoteAddr().String(), ":")
+				network := conn.RemoteAddr().Network()
+				ip := split[0]
+				es := &events.EventSensor{
+					SensorID:     s.SensorID,
+					Type:         s.Type,
+					Port:         s.Port,
+					AttackerPort: split[1],
+				}
+				em := events.NewSensorEventManager(network, ip, es)
+				err := em.SendEvent("new", s.Host, s.ApiKey)
 				if err != nil {
 					log.Debug(err)
 				}

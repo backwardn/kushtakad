@@ -10,11 +10,9 @@
                         <tr>
                             <th>Event ID</th>
                             <th>Event State</th>
-                            <th>Service Type</th>
-                            <th>Service Port</th>
+                            <th>Event Type</th>
                             <th>Attacker Proto</th>
                             <th>Attacker IP</th>
-                            <th>Attacker Port</th>
                             <th>When</th>
                             <th>Token/Sensor</th>
                         </tr>
@@ -22,17 +20,15 @@
                     <tbody>
                     {{ if len .Events }}
                         {{ range $key, $v := .Events }}
-                                <tr>
-                                    <td>{{ $v.ID }}</td>
-                                    <td>{{ $v.State }}</td>
-                                    <td>{{ $v.SensorType }}</td>
-                                    <td>{{ $v.SensorPort }}</td>
-                                    <td>{{ $v.AttackerNetwork }}</td>
-                                    <td>{{ $v.AttackerIP }}</td>
-                                    <td>{{ $v.AttackerPort }}</td>
-                                    <td>{{ prettytime $v.Created }}</td>
-                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/sensor/{{ $v.SensorID }}"><i class="material-icons">settings</i></a></td>
-                                </tr>
+                            <tr>
+                                <td>{{ $v.ID }}</td>
+                                <td>{{ $v.State }}</td>
+                                <td>{{ $v.Type }}</td>
+                                <td>{{ $v.AttackerNetwork }}</td>
+                                <td>{{ $v.AttackerIP }}</td>
+                                <td>{{ prettytime $v.Created }}</td>
+                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/sensor/{{ eventTypeID $v }}"><i class="material-icons">settings</i></a></td>
+                            </tr>
                         {{ end }}
                     {{ end }}
                     </tbody>

@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -18,61 +16,116 @@ import (
 
 var log = logging.MustGetLogger("event_manager")
 
-const newEvent = "new"
-const ongoingEvent = "ongoing"
+const (
+	newEvent     = "new"
+	ongoingEvent = "ongoing"
+	trusted      = "trusted"
+)
 
 type EventManager struct {
 	ID              int64  `storm:"id,increment,index"`
-	State           string `json:"state"` // new, ongoing
-	Type            string `json:"type"`
+	State           string `json:"state"` // new, ongoing, trusted
+	Type            string `storm:"index" json:"type"`
 	AttackerNetwork string `storm:"index"`
 	AttackerIP      string `storm:"index"`
-	AttackerPort    string `storm:"index"`
-	SensorID        int64  `json:"sensor_id"`
-	SensorType      string
-	SensorPort      int
+	EventType       interface{}
 	Created         time.Time   `storm:"index"`
 	mu              *sync.Mutex `json:"-"`
+}
+
+type EventType interface {
+	Is() string
+}
+
+type EventSensor struct {
+	SensorID     int64  `json:"sensor_id"`
+	Type         string `json:"type"`
+	Port         int    `json:"port"`
+	AttackerPort string `storm:"index" json:"attacker_port"`
+}
+
+func TypeID(em EventManager) int64 {
+	switch em.Type {
+	case "sensor":
+		var e EventSensor
+		j, _ := json.Marshal(em.EventType)
+		json.Unmarshal([]byte(j), &e)
+		return e.SensorID
+	case "token":
+		var e EventToken
+		j, _ := json.Marshal(em.EventType)
+		json.Unmarshal([]byte(j), &e)
+		return e.TokenID
+	}
+	return 0
+}
+
+func MapToEventSensor(em EventManager) EventSensor {
+	var e EventSensor
+	switch em.Type {
+	case "sensor":
+		j, _ := json.Marshal(em.EventType)
+		json.Unmarshal([]byte(j), &e)
+	}
+	return e
+}
+
+func (em EventManager) SetSensorID(i int64) {
+	switch e := em.EventType.(type) {
+	case *EventSensor:
+		e.SensorID = i
+		em.EventType = e
+	case *EventToken:
+		e.TokenID = i
+		em.EventType = e
+	}
+}
+
+func (e *EventSensor) Is() string {
+	return e.Type
+}
+
+type EventToken struct {
+	TokenID int64  `json:"token_id"`
+	Type    string `json:"type"`
+}
+
+func (e *EventToken) MyID() int64 {
+	return e.TokenID
+}
+
+func (e *EventToken) Is() string {
+	return e.Type
 }
 
 func (em *EventManager) AddMutex() {
 	em.mu = &sync.Mutex{}
 }
 
-func NewSensorEventManager(st string, sp int, sid int64) *EventManager {
-	t := time.Now()
+func NewSensorEventManager(network, ip string, e *EventSensor) *EventManager {
+	return NewEventManager("sensor", network, ip, e)
+}
+
+func NewTokenEventManager(network, ip string, e *EventToken) *EventManager {
+	return NewEventManager("token", network, ip, e)
+}
+
+func NewEventManager(typ, network, ip string, et EventType) *EventManager {
 	return &EventManager{
-		mu:         &sync.Mutex{},
-		Type:       "sensor",
-		SensorID:   sid,
-		SensorPort: sp,
-		SensorType: st,
-		Created:    t,
+		Type:            typ,
+		EventType:       et,
+		AttackerNetwork: network,
+		AttackerIP:      ip,
+		Created:         time.Now(),
+		mu:              &sync.Mutex{},
 	}
 }
 
-func NewEventManager(st string, sp int, sid int64) *EventManager {
-	t := time.Now()
-	return &EventManager{
-		mu:         &sync.Mutex{},
-		SensorID:   sid,
-		SensorPort: sp,
-		SensorType: st,
-		Created:    t,
-	}
-}
-
-func (em *EventManager) SendEvent(state, host, key string, addr net.Addr) error {
+func (em *EventManager) SendEvent(state, host, key string) error {
 	em.mu.Lock()
 	defer em.mu.Unlock()
 
-	log.Debugf("host %s key %s", host, key)
-	s := strings.Split(addr.String(), ":")
 	em.State = state
-	em.AttackerNetwork = addr.Network()
-	em.AttackerIP = s[0]
-	em.AttackerPort = s[1]
-	em.Created = time.Now()
 	url := host + "/api/v1/event.json"
 
 	spaceClient := http.Client{

@@ -14,6 +14,7 @@ import (
 	"github.com/asdine/storm"
 	packr "github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/sessions"
+	"github.com/kushtaka/kushtakad/events"
 	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/unrolled/render"
@@ -45,7 +46,8 @@ type App struct {
 func tmplFuncs() []template.FuncMap {
 	funks := []template.FuncMap{}
 	var fns = template.FuncMap{
-		"prettytime": helpers.PrettyTime,
+		"eventTypeID": events.TypeID,
+		"prettytime":  helpers.PrettyTime,
 		"plus1": func(x int) int {
 			return x + 1
 		},
