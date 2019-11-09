@@ -174,7 +174,7 @@ func (em *EventManager) SetState(db *storm.DB) {
 		q.Gte("Created", past)).Find(&targets)
 
 	if err != nil {
-		log.Errorf("Targets are %v", err)
+		log.Warningf("Targets are %v", err)
 	}
 
 	if len(targets) > 0 {

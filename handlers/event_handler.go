@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -42,7 +43,7 @@ func GetTokenEvent(w http.ResponseWriter, r *http.Request) {
 	var token models.Token
 	err = app.DB.One("Key", v["id"], &token)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Seleting a token failed > %v", err)
 		return
 	}
 
@@ -55,7 +56,9 @@ func GetTokenEvent(w http.ResponseWriter, r *http.Request) {
 		TokenID: token.ID,
 	}
 
-	em := events.NewTokenEventManager("tcp", r.RemoteAddr, et)
+	split := strings.Split(r.RemoteAddr, ":")
+	ip := split[0]
+	em := events.NewTokenEventManager("tcp", ip, et)
 	em.AddMutex()
 	em.SetState(app.DB)
 
@@ -67,7 +70,7 @@ func GetTokenEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
-	err = tx.Save(&em)
+	err = tx.Save(em)
 	if err != nil {
 		log.Error(err)
 		app.Render.JSON(w, 200, err)

@@ -27,7 +27,7 @@
 
 
             <div class="input-field col s12">
-                <select name="teamId">
+                <select name="team_id">
                     <option value="" disabled selected>---</option>
                     {{ if len .Teams }}
                         {{ range $key, $v := .Teams }}
@@ -73,7 +73,7 @@
                             <th>Name</th>
                             <th>Type</th>
                             <th>Note</th>
-                            <th>Download</th>
+                            <th>Action</th>
                             <th>Delete</th>
                         </tr>
                     </thead>
@@ -84,7 +84,14 @@
                                 <td>{{ $v.Name }}</td>
                                 <td>{{ $v.Type }}</td>
                                 <td>{{ $v.Note }}</td>
-                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/download/token/{{ $v.Type }}/{{ $v.ID }}"><i class="material-icons">file_download</i></a></td>
+                                <td>
+                                    {{ if ne $v.Type "link" }}
+                                        <a class="btn-floating waves-effect waves-light teal lighten-1" href="/kushtaka/download/token/{{ $v.Type }}/{{ $v.ID }}"><i class="material-icons">file_download</i></a>
+                                    {{ else }}
+                                        <input size="2" class="copy-text" id="token-copy-{{$v.ID}}" type="text" value="{{ $v.URL}}">
+                                        <a class="btn-floating waves-effect waves-light teal lighten-1" onclick="copy({{$v.ID}})"><i class="material-icons">content_copy</i></a>
+                                    {{ end }}
+                                </td>
                                 <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteTokenModal({ ID: {{ $v.ID }}, type: {{ $v.Type }} } )"><i class="material-icons">delete_sweep</i></a></td>
                             </tr>
                     {{ end }}
@@ -116,13 +123,20 @@
 
 <script>
 
-
     var uri = "{{ .URI }}/kushtaka/token";
 
     document.addEventListener('DOMContentLoaded', function() {
         var elems = document.querySelectorAll('.modal');
         var instances = M.Modal.init(elems, {});
     });
+
+    function copy(id) {
+        var txt = "#token-copy-" + id.toString();
+        var copyText = document.querySelector(txt);
+        copyText.select();
+        document.execCommand("copy");
+        M.toast({html: "Copied to clipboard!", classes: 'green lighten-1'})
+    } 
 
     function respDeleteToken(modalType, resp) {
         var modalElement = document.getElementById(modalType);

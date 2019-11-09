@@ -78,7 +78,7 @@
                 </div>
 
                 <div class="input-field col">
-                    <button class="btn-floating waves-effect waves-light teal lighten-1" onclick="modalPop()">
+                    <button class="btn-floating waves-effect waves-light teal lighten-1" onclick="copy(apikey)">
                         <i class="material-icons">content_copy</i>
                     </button>
                 </div>
@@ -97,7 +97,7 @@
                         <tr>
                             <th>Port</th>
                             <th>Type</th>
-                            <th>Configure</th>
+                            <!-- <th>Configure</th> -->
                             <th>Delete</th>
                         </tr>
                     </thead>
@@ -107,7 +107,7 @@
                             <tr id="service-id-{{ $service.UUID }}">
                                 <td>{{ $service.Port }}</td>
                                 <td>{{ $service.Type }}</td>
-                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="updateServiceModal( {{ $service }} )"><i class="material-icons">input</i></a></td>
+                                <!-- <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="updateServiceModal( {{ $service }} )"><i class="material-icons">input</i></a></td> -->
                                 <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteServiceModal( {{ $service }} )"><i class="material-icons">delete_sweep</i></a></td>
                             </tr>
                     {{ end }}
@@ -157,6 +157,13 @@
         $('select').formSelect();
         $('.tooltipped').tooltip();
     });
+
+    function copy(id) {
+        var copyText = document.querySelector("#apikey");
+        copyText.select();
+        document.execCommand("copy");
+        M.toast({html: "API Key copied to clipboard!", classes: 'green lighten-1'})
+    } 
 
     function cancelDelete(id) {
         var modalElement = document.getElementById("delete-service-modal");

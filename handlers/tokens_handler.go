@@ -3,7 +3,9 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/state"
 	"github.com/kushtaka/kushtakad/tokens/docx"
@@ -50,11 +52,19 @@ func PostTokens(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	token := &models.Token{
-		Name: r.FormValue("name"),
-		Note: r.FormValue("note"),
-		Type: r.FormValue("type"),
+	team_id, err := strconv.ParseInt(r.FormValue("team_id"), 10, 64)
+	if err != nil {
+		app.Fail(err.Error())
+		http.Redirect(w, r, redirUrl, 302)
 	}
+
+	token := &models.Token{
+		Name:   r.FormValue("name"),
+		Note:   r.FormValue("note"),
+		Type:   r.FormValue("type"),
+		TeamID: team_id,
+	}
+
 	app.View.Forms.Token = token
 	err = token.ValidateCreate()
 	if err != nil {
@@ -81,6 +91,9 @@ func PostTokens(w http.ResponseWriter, r *http.Request) {
 
 	switch token.Type {
 	case "link":
+		retKey, retUrl := helpers.GenerateLink(app.Settings.URI, "t", 32)
+		token.Key = retKey
+		token.URL = retUrl
 	case "pdf":
 		pdfBytes, err := app.Box.Find("files/template.pdf")
 		if err != nil {

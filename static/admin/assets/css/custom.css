@@ -321,3 +321,10 @@ input:not([type]):focus:not([readonly]) + label, input[type="text"]:focus:not([r
 .pagination li.active {
   background-color: #0894B0 !important
 }
+
+
+.copy-text {
+  width: 0% !important;  
+  height: 0px !important;
+  font-size: 1px !important;
+}
