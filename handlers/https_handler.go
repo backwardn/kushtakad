@@ -132,7 +132,7 @@ func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	set.BindURI = "http://0.0.0.0"
+	set.BindURI = "0.0.0.0"
 	set.URI = "https://" + let.FQDN // TODO: pretty gross
 	set.LeEnabled = true
 	err = set.WriteSettings()

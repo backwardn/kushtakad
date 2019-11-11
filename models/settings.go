@@ -79,9 +79,9 @@ func (s *Settings) CreateIfNew() {
 
 	if len(s.BindURI) < 4 {
 		if os.Getenv("KUSHTAKA_ENV") == "development" {
-			s.BindURI = "http://localhost:8080"
+			s.BindURI = "localhost:8080"
 		} else {
-			s.BindURI = "http://0.0.0.0:8080"
+			s.BindURI = "0.0.0.0:8080"
 		}
 	}
 }
