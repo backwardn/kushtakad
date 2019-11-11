@@ -2,8 +2,9 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"net"
+	"net/url"
 	"os"
 
 	"github.com/gorilla/securecookie"
@@ -15,45 +16,49 @@ type Settings struct {
 	SessionHash  []byte `json:"session_hash"`
 	SessionBlock []byte `json:"session_block"`
 	CsrfHash     []byte `json:"csrf_hash"`
+	BindURI      string `json:"bind_uri"`
+	URI          string `json:"base_uri"`
 	LeEnabled    bool   `json:"lets_encrypt"`
-	URI          string `json:"uri"`
-	FQDN         string `json:"fqdn"`
 	Host         string `json:"-"`
 	Port         string `json:"-"`
 	Scheme       string `json:"-"`
+	FQDN         string `json:"-"`
 }
 
-func (s *Settings) BuildURI() string {
-	host := "0.0.0.0"
-	port := "8080"
-	scheme := "http"
-	if os.Getenv("KUSHTAKA_ENV") == "development" {
-		host = "localhost"
-		port = "8080"
-		scheme = "http"
-	} else if s.LeEnabled {
-		host = "0.0.0.0"
-		port = "80"
-		scheme = "https"
+func (s *Settings) BuildBindURI() {
+	u, err := url.Parse(s.BindURI)
+	if err != nil {
+		panic(err)
 	}
 
-	s.Host = host
-	s.Port = port
-	s.Scheme = scheme
-
-	if len(s.FQDN) > 4 {
-		s.URI = fmt.Sprintf("%s://%s:%s", scheme, s.FQDN, port)
-	} else if os.Getenv("KUSHTAKA_ENV") == "development" {
-		s.URI = fmt.Sprintf("%s://%s:%s", scheme, host, "3000")
+	host, port, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		s.Host = u.Host
+		s.Port = u.Port()
 	} else {
-		s.URI = fmt.Sprintf("%s://%s:%s", scheme, host, port)
+		s.Host = host
+		s.Port = port
+	}
+}
+
+func (s *Settings) BuildBaseURI() string {
+	u, err := url.Parse(s.URI)
+	if err != nil {
+		panic(err)
 	}
 
+	host, _, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		s.FQDN = u.Host
+	} else {
+		s.FQDN = host
+	}
+
+	s.Scheme = u.Scheme
 	return s.URI
 }
 
-func InitSettings() (*Settings, error) {
-	s, err := NewSettings()
+func (s *Settings) CreateIfNew() {
 	if len(s.SessionHash) != 32 {
 		s.SessionHash = securecookie.GenerateRandomKey(32)
 	}
@@ -66,7 +71,26 @@ func InitSettings() (*Settings, error) {
 		s.CsrfHash = securecookie.GenerateRandomKey(32)
 	}
 
-	s.BuildURI()
+	if len(s.URI) < 4 {
+		if os.Getenv("KUSHTAKA_ENV") == "development" {
+			s.URI = "http://localhost:8080"
+		}
+	}
+
+	if len(s.BindURI) < 4 {
+		if os.Getenv("KUSHTAKA_ENV") == "development" {
+			s.BindURI = "http://localhost:8080"
+		} else {
+			s.BindURI = "http://0.0.0.0:8080"
+		}
+	}
+}
+
+func InitSettings() (*Settings, error) {
+	s, err := NewSettings()
+	s.CreateIfNew()
+	s.BuildBindURI()
+	s.BuildBaseURI()
 
 	err = s.WriteSettings()
 	if err != nil {

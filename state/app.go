@@ -167,7 +167,7 @@ func (app *App) RestoreUser() {
 }
 
 func (app *App) RestoreURI() {
-	app.View.URI = app.Settings.BuildURI()
+	app.View.URI = app.Settings.BuildBaseURI()
 }
 
 func (app *App) RestoreState() {

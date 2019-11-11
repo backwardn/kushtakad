@@ -24,6 +24,7 @@ func HTTPS(settings *models.Settings, mux http.Handler, db *storm.DB) (*http.Ser
 	var lnMu sync.Mutex
 	var err error
 
+	log.Debugf("FQDN %s", settings.FQDN)
 	domain := models.Domain{FQDN: settings.FQDN}
 	le := models.NewLE(state.AcmeProdLocation(), domain, db)
 	cfg := le.Magic
