@@ -52,7 +52,7 @@ require (
 	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708
 	golang.org/x/net v0.0.0-20191003171128-d98b1b443823
 	golang.org/x/sys v0.0.0-20191112214154-59a1497f0cea // indirect
-	golang.org/x/tools v0.0.0-20191112232237-76a3b8da50ef // indirect
+	golang.org/x/tools v0.0.0-20191113055240-e33b02e76616 // indirect
 	google.golang.org/appengine v1.5.0
 	gopkg.in/jordan-wright/email.v1 v1.0.0-20150827023900-a3d0a1a81cdc
 )

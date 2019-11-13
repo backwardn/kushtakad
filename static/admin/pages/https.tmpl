@@ -44,7 +44,11 @@
                                     {{ $le.State }}
                                     <i class="material-icons icon-black">help_outline</i>
                                 </td>
-                                <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="postReboot( {{$le}} )"><i class="material-icons">autorenew</i></a></td>
+                                {{ if eq $le.State "success"}}
+                                    <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="postReboot( {{$le}} )"><i class="material-icons">autorenew</i></a></td>
+                                {{ else }}
+                                    <td><a class="disabled btn-floating waves-effect waves-light"><i class="material-icons">autorenew</i></button></td>
+                                {{ end}}
                             </tr>
                         {{ end }}
                     {{ end }}
@@ -67,7 +71,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         var elems = document.querySelectorAll('.modal');
-        var instances = M.Modal.init(elems, {});
+        var instances = M.Modal.init(elems, {dismissible: false});
     });
 
     $(document).ready(function(){
@@ -182,9 +186,18 @@
 
     function respFunc(resp) {
         if (resp.Status === "success") {
-            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            //M.toast({html: resp.Message , classes: 'green lighten-1'})
+            setInterval(function() {
+                var elem = document.getElementById("preloader-timer");
+                console.log(elem);
+                var toInt = parseInt(elem.textContent);
+                elem.textContent = toInt - 1; 
+                }, 1000);
         } else {
             M.toast({html: resp.Message , classes: 'red lighten-1'})
+            var modalElement = document.getElementById("preloader-modal");
+            var instance = M.Modal.getInstance(modalElement);
+            instance.close();
         }
     }
 
