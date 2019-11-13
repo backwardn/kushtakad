@@ -39,7 +39,8 @@ type Comms struct {
 
 func ParseServices() (*Mapper, error) {
 
-	jsonFile, err := os.Open("services.json")
+	fp := filepath.Join("data", "services.json")
+	jsonFile, err := os.Open(fp)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +68,8 @@ func ValidateAuth(host, apikey string) (*Auth, error) {
 }
 
 func ParseAuth() (*Auth, error) {
-	jsonFile, err := os.Open(auth)
+	fp := filepath.Join("data", "sensor.json")
+	jsonFile, err := os.Open(fp)
 	if err != nil {
 		return nil, err
 	}

@@ -18,7 +18,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
-const assetsFolder = "static"
+const AssetsFolder = "static"
 const sessionName = "_kushtaka"
 
 var (
@@ -34,14 +34,9 @@ var (
 
 func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	gob.Register(&state.App{})
-	box = packr.New(assetsFolder, "../static")
+	box = packr.New(AssetsFolder, "../static")
 	reboot = r
 	le = l
-
-	err = state.SetupFileStructure(box)
-	if err != nil {
-		log.Fatalf("Failed to setup file structure : %s", err)
-	}
 
 	db, err = storm.Open(state.DbLocation())
 	if err != nil {

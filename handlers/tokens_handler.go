@@ -111,7 +111,6 @@ func PostTokens(w http.ResponseWriter, r *http.Request) {
 
 		token.Key = pdfCtx.Key
 		token.TokenContext = pdfCtx
-		log.Debug(pdfCtx)
 	case "docx":
 		docxBytes, err := app.Box.Find("files/template.docx")
 		if err != nil {
@@ -129,7 +128,6 @@ func PostTokens(w http.ResponseWriter, r *http.Request) {
 
 		token.Key = docxctx.Key
 		token.TokenContext = docxctx
-		log.Debug(docxctx)
 	}
 
 	err = tx.Save(token)

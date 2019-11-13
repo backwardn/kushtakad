@@ -6,17 +6,23 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path"
 
 	"github.com/gorilla/securecookie"
+	"github.com/pkg/errors"
 )
 
-const SettingsID = 1
+const (
+	SettingsID   = 1
+	ServerConfig = "server.json"
+	DataDir      = "data"
+)
 
 type Settings struct {
 	SessionHash  []byte `json:"session_hash"`
 	SessionBlock []byte `json:"session_block"`
 	CsrfHash     []byte `json:"csrf_hash"`
-	BindURI      string `json:"bind_uri"`
+	BindAddr     string `json:"bind_addr"`
 	URI          string `json:"base_uri"`
 	LeEnabled    bool   `json:"lets_encrypt"`
 	Host         string `json:"-"`
@@ -25,26 +31,19 @@ type Settings struct {
 	FQDN         string `json:"-"`
 }
 
-func (s *Settings) BuildBindURI() {
-	u, err := url.Parse(s.BindURI)
+func (s *Settings) BuildBindAddr() {
+	host, port, err := net.SplitHostPort(s.BindAddr)
 	if err != nil {
-		panic(err)
+		log.Error("Host %s, Port %s, Err %v", host, port, err)
 	}
-
-	host, port, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		s.Host = u.Host
-		s.Port = u.Port()
-	} else {
-		s.Host = host
-		s.Port = port
-	}
+	s.Host = host
+	s.Port = port
 }
 
 func (s *Settings) BuildBaseURI() string {
 	u, err := url.Parse(s.URI)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	host, _, err := net.SplitHostPort(u.Host)
@@ -73,15 +72,17 @@ func (s *Settings) CreateIfNew() {
 
 	if len(s.URI) < 4 {
 		if os.Getenv("KUSHTAKA_ENV") == "development" {
+			s.URI = "http://localhost:3000"
+		} else {
 			s.URI = "http://localhost:8080"
 		}
 	}
 
-	if len(s.BindURI) < 4 {
+	if len(s.BindAddr) < 4 {
 		if os.Getenv("KUSHTAKA_ENV") == "development" {
-			s.BindURI = "localhost:8080"
+			s.BindAddr = "localhost:8080"
 		} else {
-			s.BindURI = "0.0.0.0:8080"
+			s.BindAddr = "0.0.0.0:8080"
 		}
 	}
 }
@@ -89,7 +90,7 @@ func (s *Settings) CreateIfNew() {
 func InitSettings() (*Settings, error) {
 	s, err := NewSettings()
 	s.CreateIfNew()
-	s.BuildBindURI()
+	s.BuildBindAddr()
 	s.BuildBaseURI()
 
 	err = s.WriteSettings()
@@ -106,7 +107,8 @@ func (s *Settings) WriteSettings() error {
 		return err
 	}
 
-	err = ioutil.WriteFile("server.json", b, 0644)
+	fp := ServerCfgFile()
+	err = ioutil.WriteFile(fp, b, 0644)
 	if err != nil {
 		return err
 	}
@@ -116,7 +118,8 @@ func (s *Settings) WriteSettings() error {
 func NewSettings() (*Settings, error) {
 	log.Debug("start")
 	settings := &Settings{}
-	jsonFile, err := os.Open("server.json")
+	fp := ServerCfgFile()
+	jsonFile, err := os.Open(fp)
 	if err != nil {
 		return settings, err
 	}
@@ -130,6 +133,15 @@ func NewSettings() (*Settings, error) {
 
 	log.Debug("end")
 	return settings, nil
+}
+
+func ServerCfgFile() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "ServerCfgFile() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, DataDir, ServerConfig)
 }
 
 // Get preferred outbound ip of this machine

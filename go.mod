@@ -49,10 +49,10 @@ require (
 	github.com/xenolf/lego v2.7.2+incompatible
 	github.com/yuin/gopher-lua v0.0.0-20190514113301-1cd887cd7036
 	go.etcd.io/bbolt v1.3.3
-	golang.org/x/crypto v0.0.0-20191108234033-bd318be0434a
+	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708
 	golang.org/x/net v0.0.0-20191003171128-d98b1b443823
-	golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4 // indirect
-	golang.org/x/tools v0.0.0-20191111154804-8cb0d02132ec // indirect
+	golang.org/x/sys v0.0.0-20191112214154-59a1497f0cea // indirect
+	golang.org/x/tools v0.0.0-20191112232237-76a3b8da50ef // indirect
 	google.golang.org/appengine v1.5.0
 	gopkg.in/jordan-wright/email.v1 v1.0.0-20150827023900-a3d0a1a81cdc
 )

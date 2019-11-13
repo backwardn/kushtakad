@@ -44,11 +44,7 @@
                                     {{ $le.State }}
                                     <i class="material-icons icon-black">help_outline</i>
                                 </td>
-                                {{ if eq $le.State "success"}}
                                 <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="postReboot( {{$le}} )"><i class="material-icons">autorenew</i></a></td>
-                                {{ else }}
-                                <td><a class="disabled btn-floating waves-effect waves-light"><i class="material-icons">autorenew</i></button></td>
-                                {{ end}}
                             </tr>
                         {{ end }}
                     {{ end }}
@@ -56,7 +52,11 @@
                 </table>
             </div>
         </div>
+
+        {{ template "admin/modals/preloader" . }}
+
 </div>
+
 
 
 <script>
@@ -64,7 +64,14 @@
 
     var uri = "{{ .URI }}/kushtaka/https";
 
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.modal');
+        var instances = M.Modal.init(elems, {});
+    });
+
     $(document).ready(function(){
+
         $('.tooltipped').tooltip();
     });
 
@@ -149,8 +156,10 @@
 
     function postReboot(obj) {
         url = uri + "/reboot";
-        M.toast({html: "Installing cert and rebooting...", classes: 'orange lighten-1'})
         console.log(url);
+        var modalElement = document.getElementById("preloader-modal");
+        var instance = M.Modal.getInstance(modalElement);
+        instance.open();
         postData(obj, url);
     }
 
@@ -166,7 +175,7 @@
         .then(response => respFunc(response))
         .catch(error => errc(error));
 
-        setTimeout("location.href = 'https://" + data.FQDN + "/kushtaka/https';", 3000);
+        setTimeout("location.href = 'https://" + data.FQDN + "/kushtaka/https';", 20000);
 
     }
 
