@@ -78,7 +78,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	redirUrl := "/kushtaka/dashboard/page/1/limit/1000"
+	redirUrl := "/kushtaka/dashboard/page/1/limit/100"
 	app, err := state.Restore(r)
 	if err != nil {
 		app.Fail(err.Error())

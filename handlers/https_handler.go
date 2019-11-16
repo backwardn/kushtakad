@@ -7,6 +7,7 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/q"
+	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/state"
 )
@@ -125,7 +126,7 @@ func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	set, err := models.NewSettings()
+	set, err := models.NewSettings(helpers.DataDir())
 	if err != nil {
 		resp := NewResponse("failed", "Unable to init NewSettings()", err)
 		app.Render.JSON(w, 200, resp)
@@ -135,7 +136,7 @@ func PostIRebootFQDN(w http.ResponseWriter, r *http.Request) {
 	set.BindAddr = "0.0.0.0"
 	set.URI = "https://" + let.FQDN // TODO: pretty gross
 	set.LeEnabled = true
-	err = set.WriteSettings()
+	err = set.WriteSettings(helpers.DataDir())
 	if err != nil {
 		resp := NewResponse("failed", "Unable to write settings", err)
 		app.Render.JSON(w, 200, resp)

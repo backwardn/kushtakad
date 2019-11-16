@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/asdine/storm"
+	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/state"
 	"github.com/pkg/browser"
@@ -93,7 +94,8 @@ func HTTP(settings *models.Settings, n *negroni.Negroni) *http.Server {
 	go func() {
 		time.Sleep(1 * time.Second)
 		log.Infof("Listening on...%s\n", settings.Host)
-		if os.Getenv("KUSHTAKA_ENV") != "development" {
+		env := os.Getenv("KUSHTAKA_ENV")
+		if env != helpers.StateDevelopment && env != helpers.StateTest {
 			err := browser.OpenURL(settings.URI)
 			if err != nil {
 				log.Error(err)

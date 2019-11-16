@@ -5,14 +5,17 @@ import (
 	"crypto/subtle"
 	"encoding/gob"
 	"encoding/json"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/asdine/storm"
 	packr "github.com/gobuffalo/packr/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/kushtaka/kushtakad/handlers"
+	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/state"
 	"github.com/urfave/negroni"
@@ -49,7 +52,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	}
 
 	// must setup the basic hashes and settings for application to function
-	settings, err = models.InitSettings()
+	settings, err = models.InitSettings(helpers.DataDir())
 	if err != nil {
 		log.Fatalf("Failed to init settings : %s", err)
 	}
@@ -142,6 +145,8 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 	kushtaka.HandleFunc("/team/{id}", handlers.PutTeam).Methods("PUT")
 	kushtaka.HandleFunc("/team", handlers.DeleteTeam).Methods("DELETE")
 
+	kushtaka.HandleFunc("/team/member/{id}", handlers.DeleteTeamMember).Methods("DELETE")
+
 	// https
 	kushtaka.HandleFunc("/https", handlers.GetHttps).Methods("GET")
 	kushtaka.HandleFunc("/https/test", handlers.PostTestFQDN).Methods("POST")
@@ -164,6 +169,7 @@ func RunServer(r chan bool, l chan models.LE) (*http.Server, *http.Server) {
 
 	// setup router
 	n := negroni.New()
+	n.Use(negroni.HandlerFunc(logHTTP))
 	n.Use(negroni.HandlerFunc(before))
 	n.UseHandler(rtr)
 	n.Use(negroni.HandlerFunc(after))
@@ -207,6 +213,13 @@ func isAuthenticated(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func logHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	start := time.Now()
+	host, port, _ := net.SplitHostPort(r.RemoteAddr)
+	log.Infof("Duration: %s, Addr: %s, AddrPort: %s, Hostname: %s, Method: %s, Path: %s", time.Since(start), host, port, r.Host, r.Method, r.URL.Path)
+	next.ServeHTTP(w, r)
 }
 
 func isAuthenticatedWithToken(next http.Handler) http.Handler {

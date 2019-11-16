@@ -99,6 +99,7 @@ func tryResetAdmin(user, pass string) (bool, error) {
 	if err != nil {
 		return true, errors.Errorf("Unable to begin tx > %v", err)
 	}
+	defer tx.Rollback()
 
 	err = tx.Save(user)
 	if err != nil {

@@ -21,6 +21,8 @@ kushtakad.darwin
 main-packr.go
 packrd
 data/
+data_test/
+data_dev/
 app/
 build/
 dist/
@@ -32,4 +34,3 @@ dist/
 **/*-packr.go
 *.log
 *.db
-

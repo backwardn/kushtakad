@@ -31,6 +31,15 @@ type Settings struct {
 	FQDN         string `json:"-"`
 }
 
+const (
+	StateProduction  = "production"
+	StateTest        = "test"
+	StateDevelopment = "development"
+	prodDataDir      = "data"
+	testDataDir      = "data_test"
+	devDataDir       = "data_dev"
+)
+
 func (s *Settings) BuildBindAddr() {
 	host, port, err := net.SplitHostPort(s.BindAddr)
 	if err != nil {
@@ -58,6 +67,7 @@ func (s *Settings) BuildBaseURI() string {
 }
 
 func (s *Settings) CreateIfNew() {
+	env := os.Getenv("KUSHTAKA_ENV")
 	if len(s.SessionHash) != 32 {
 		s.SessionHash = securecookie.GenerateRandomKey(32)
 	}
@@ -71,15 +81,16 @@ func (s *Settings) CreateIfNew() {
 	}
 
 	if len(s.URI) < 4 {
-		if os.Getenv("KUSHTAKA_ENV") == "development" {
+		if env == StateDevelopment && env == StateTest {
 			s.URI = "http://localhost:3000"
 		} else {
 			s.URI = "http://localhost:8080"
 		}
 	}
 
+
 	if len(s.BindAddr) < 4 {
-		if os.Getenv("KUSHTAKA_ENV") == "development" {
+		if env == StateDevelopment && env == StateTest {
 			s.BindAddr = "localhost:8080"
 		} else {
 			s.BindAddr = "0.0.0.0:8080"
@@ -87,13 +98,13 @@ func (s *Settings) CreateIfNew() {
 	}
 }
 
-func InitSettings() (*Settings, error) {
-	s, err := NewSettings()
+func InitSettings(dir string) (*Settings, error) {
+	s, err := NewSettings(dir)
 	s.CreateIfNew()
 	s.BuildBindAddr()
 	s.BuildBaseURI()
 
-	err = s.WriteSettings()
+	err = s.WriteSettings(dir)
 	if err != nil {
 		return s, err
 	}
@@ -101,13 +112,13 @@ func InitSettings() (*Settings, error) {
 	return s, nil
 }
 
-func (s *Settings) WriteSettings() error {
+func (s *Settings) WriteSettings(dir string) error {
 	b, err := json.MarshalIndent(s, "", " ")
 	if err != nil {
 		return err
 	}
 
-	fp := ServerCfgFile()
+	fp := ServerCfgFile(dir)
 	err = ioutil.WriteFile(fp, b, 0644)
 	if err != nil {
 		return err
@@ -115,10 +126,10 @@ func (s *Settings) WriteSettings() error {
 	return nil
 }
 
-func NewSettings() (*Settings, error) {
+func NewSettings(dir string) (*Settings, error) {
 	log.Debug("start")
 	settings := &Settings{}
-	fp := ServerCfgFile()
+	fp := ServerCfgFile(dir)
 	jsonFile, err := os.Open(fp)
 	if err != nil {
 		return settings, err
@@ -135,13 +146,13 @@ func NewSettings() (*Settings, error) {
 	return settings, nil
 }
 
-func ServerCfgFile() string {
+func ServerCfgFile(dir string) string {
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "ServerCfgFile() unable to detect current working directory"))
 	}
 
-	return path.Join(cwd, DataDir, ServerConfig)
+	return path.Join(cwd, dir, ServerConfig)
 }
 
 // Get preferred outbound ip of this machine

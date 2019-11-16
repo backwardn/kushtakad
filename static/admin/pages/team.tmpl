@@ -29,10 +29,13 @@
                     <table class="responsive-table striped">
                         <tbody>
                             <thead><tr><th>Email</th><th>Delete?</th></tr></thead>
-                            {{ range $member := .Team.Members }}
-                                    <tr>
-                                        <td>{{ $member }}</td>
-                                        <td><a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteMemberModal( {{ $member }} )"><i class="material-icons">delete_sweep</i></a></td>
+
+                            {{ range $email := .Team.Members }}
+                                    <tr id="team-member-id-{{$email}}">
+                                        <td>{{ $email }}</td>
+                                        <td>
+                                            <a class="btn-floating waves-effect waves-light teal lighten-1" onclick="deleteTeamMemberModal({'email':'{{$email}}'})"><i class="material-icons">delete_sweep</i></a>
+                                        </td>
                                     </tr>
                             {{ end }}
                         </tbody>
@@ -44,4 +47,87 @@
             </div>
         </div>
     
+
+
+            <!-- Delete Modal Structures -->
+    <div id="delete-team-member-modal" class="modal-gap modal">
+        <div class="modal-content">
+            <div class="row">
+                <h5 class="col">Delete the Team Member?</h5>
+            </div>
+
+            <div class="row">
+                <div class="input-field col">
+                    <button id="delete-team-member-modal-no"  class="waves-effect waves-light teal lighten-1 btn">Cancel</button>
+                    <button id="delete-team-member-modal-yes" class="waves-effect waves-light red lighten-1 btn">Delete</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+</div>
+
+
+<script>
+
+    var uri = "/kushtaka/team/member/{{.Team.ID}}";
+
+    $(document).ready(function(){
+        var elems = document.querySelectorAll('.modal');
+        var instances = M.Modal.init(elems, {});
+    });
+
+    function cancelDelete(id) {
+        var modalElement = document.getElementById("delete-team-member-modal");
+        var instance = M.Modal.getInstance(modalElement);
+        instance.close();
+    }
+
+    function deleteTeamMember(obj) {
+        deleteData(obj, uri);
+    }
+
+    function deleteData(obj, url) {
+        fetch(url, {
+        method: 'DELETE', // or 'PUT'
+        body: JSON.stringify(obj), // data can be `string` or {object}!
+        headers:{
+            'Content-Type': 'application/json'
+        }
+        }).then(res => res.json())
+        .then(response => respDeleteTeamMember("delete-team-member-modal", obj, response))
+        .catch(error => errc(error));
+    }
+
+    function respDeleteTeamMember(modalType, obj, resp) {
+        var modalElement = document.getElementById(modalType);
+        var instance = M.Modal.getInstance(modalElement);
+        if (resp.Status === "success") {
+            console.log(obj);
+            var id = "team-member-id-" + obj.email;
+            console.log(id);
+            document.getElementById(id).remove();
+            M.toast({html: resp.Message , classes: 'green lighten-1'})
+            instance.close();
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
+            instance.close();
+        }
+    }
+
+    function deleteTeamMemberModal(id) {
+            var modalElement = document.getElementById("delete-team-member-modal");
+            var instance = M.Modal.getInstance(modalElement);
+
+            document.getElementById("delete-team-member-modal-no").onclick = function() {cancelDelete(id)};
+            document.getElementById("delete-team-member-modal-yes").onclick = function() {deleteTeamMember(id)};
+
+            instance.open();
+
+    }
+
+    function errc(err) {
+        M.toast({html: err, classes: 'green lighten-1'})
+        console.error('Error:', err);
+    }
+</script>
