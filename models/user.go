@@ -135,3 +135,17 @@ func (user *User) CreateAdmin(db *storm.DB) error {
 
 	return nil
 }
+
+func IsAdminSetup(db *storm.DB) bool {
+	var user User
+	err := db.One("ID", 1, &user)
+	if err != nil {
+		return false
+	}
+
+	if user.ID == 1 {
+		return true
+	}
+
+	return false
+}

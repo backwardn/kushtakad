@@ -13,26 +13,10 @@ func GetSetup(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Unable to restore app %w", err)
 	}
 
-	if app.View.State.AdminIsSetup {
-		app.Fail("This application already has an admin user.")
+	if models.IsAdminSetup(app.DB) {
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
-
-	/*
-		var users models.User
-		err = app.DB.One("ID", 1, &users)
-		if err != nil {
-			log.Error(err)
-		}
-	*/
-
-	/*
-		if r.URL.Path == "/setup" && len(users) > 0 {
-			http.Redirect(w, r, "/404", 302)
-			return
-		}
-	*/
 
 	ren := state.NewRender("admin/layouts/center", app.Box)
 	ren.HTML(w, http.StatusOK, "admin/pages/setup", app.View)

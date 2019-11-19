@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -29,6 +30,8 @@ var (
 	le       chan models.LE
 )
 
+const AssetsFolder = "static"
+
 func DB() *storm.DB {
 	return db
 }
@@ -38,7 +41,7 @@ func ConfigureServer(r chan bool, l chan models.LE) (*models.Settings, *negroni.
 	reboot = r
 	le = l
 	gob.Register(&state.App{})
-	box = packr.New(state.AssetsFolder, "../static")
+	box = packr.New(AssetsFolder, "../static")
 
 	err = state.SetupFileStructure(box)
 	if err != nil {
@@ -220,9 +223,11 @@ func isAuthenticated(next http.Handler) http.Handler {
 }
 
 func logHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	start := time.Now()
-	host, port, _ := net.SplitHostPort(r.RemoteAddr)
-	log.Infof("Duration: %s, Addr: %s, AddrPort: %s, Hostname: %s, Method: %s, Path: %s", time.Since(start), host, port, r.Host, r.Method, r.URL.Path)
+	if os.Getenv("KUSHTAKA_ENV") != helpers.StateTest {
+		start := time.Now()
+		host, port, _ := net.SplitHostPort(r.RemoteAddr)
+		log.Infof("Duration: %s, Addr: %s, AddrPort: %s, Hostname: %s, Method: %s, Path: %s", time.Since(start), host, port, r.Host, r.Method, r.URL.Path)
+	}
 	next.ServeHTTP(w, r)
 }
 

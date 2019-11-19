@@ -57,19 +57,19 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 		Email:    r.FormValue("email"),
 		Password: r.FormValue("password"),
 	}
+
 	err = extUser.ValidateLogin()
 	app.View.Forms.Login = extUser
-
 	if err != nil {
 		app.Fail(err.Error())
-		http.Redirect(w, r, "/setup", 302)
+		http.Redirect(w, r, "/login", 302)
 		return
 	}
 
 	user := &models.User{}
 	err = app.DB.One("Email", extUser.Email, user)
 	if err != nil {
-		app.Fail("User is not found.")
+		app.Fail("User or password is incorrect.")
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
@@ -84,10 +84,5 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	app.User = user
 	app.Success("You have successfully logged in.")
 	http.Redirect(w, r, redir, 302)
-	return
-}
-
-func ReadSettings(w http.ResponseWriter, r *http.Request) {
-	log.Error("read settings")
 	return
 }

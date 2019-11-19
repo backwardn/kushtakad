@@ -2,136 +2,86 @@ package handlers
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
-	"os"
 	"strings"
 	"testing"
-
-	"github.com/kushtaka/kushtakad/helpers"
-	"github.com/kushtaka/kushtakad/models"
 )
 
-func TestMain(m *testing.M) {
-	os.Setenv("KUSHTAKA_ENV", "test")
-	os.Exit(m.Run())
-}
-
-func Teardown(t *testing.T) {
-	err := os.RemoveAll(helpers.TestDataDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestPostLogin(t *testing.T) {
-
-	reboot := make(chan bool)
-	le := make(chan models.LE)
-	_, n, _ := ConfigureServer(reboot, le)
-	defer close(reboot)
-	defer close(le)
-
-	data := url.Values{}
-	data.Set("Email", "foo")
-	data.Add("Password", "bar")
-	b := bytes.NewBufferString(data.Encode())
-
-	req := httptest.NewRequest("POST", "/login", b)
-	rr := httptest.NewRecorder()
-
-	n.ServeHTTP(rr, req)
-
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	sbody := string(body)
-	log.Debug(sbody)
-
-	if status := rr.Code; status != http.StatusFound {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusFound)
-	}
-
-	/*
-		res, err := http.Get("http://localhost/login")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		body, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			t.Fatal(err)
-		}
-		sbody := string(body)
-
-		want := []string{
-			"incorrect",
-		}
-
-		for _, target := range want {
-			if !strings.Contains(sbody, target) {
-				t.Errorf("Target '%s' not found in the response", target)
-				t.Errorf("Body is \n %s", sbody)
-			}
-		}
-	*/
-
-	//Teardown(t)
-
-}
-
 func TestGetLogin(t *testing.T) {
-	reboot := make(chan bool)
-	le := make(chan models.LE)
-	_, n, _ := ConfigureServer(reboot, le)
-	defer close(reboot)
-	defer close(le)
+	srv, client, db := NewTestApp(t)
+	defer srv.Close()
+	defer db.Close()
 
-	user := &models.User{
-		Email:           "test@example.com",
-		Password:        "testpassword1234",
-		PasswordConfirm: "testpassword1234",
-	}
-	err := user.CreateAdmin(DB())
+	resp, err := client.Get(srv.URL + "/login")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	rr := httptest.NewRecorder()
-	r, err := http.NewRequest("GET", "/login", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	n.ServeHTTP(rr, r)
-
-	if status := rr.Code; status != http.StatusOK {
+	if status := resp.StatusCode; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	body, err := ioutil.ReadAll(rr.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	sbody := string(body)
+	buf := &bytes.Buffer{}
+	buf.ReadFrom(resp.Body)
 
-	want := []string{
+	targets := []string{
 		"Password",
 		"Email",
 	}
 
-	for _, target := range want {
-		if !strings.Contains(sbody, target) {
-			t.Errorf("Target '%s' not found in the response", target)
-			t.Errorf("Body is \n %s", sbody)
+	for _, target := range targets {
+		if !strings.Contains(buf.String(), target) {
+			t.Errorf("The target [%s] was not found > %s", target, buf.String())
 		}
 	}
 
-	err = os.RemoveAll(helpers.TestDataDir)
+	Teardown()
+}
+
+func TestPostLoginPasswordTooShort(t *testing.T) {
+	srv, client, db := NewTestApp(t)
+	defer srv.Close()
+	defer db.Close()
+
+	buf := &bytes.Buffer{}
+
+	v := url.Values{}
+	v.Set("email", "test@example.com")
+	v.Set("password", "test")
+	resp, err := client.PostForm(srv.URL+"/login", v)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
+
+	buf.ReadFrom(resp.Body)
+	target := "Password: must be between 12-64 characters."
+	if !strings.Contains(buf.String(), target) {
+		t.Errorf("The target [%s] was not found > %s", target, buf.String())
+	}
+
+	Teardown()
+}
+
+func TestPostLoginPasswordIncorrect(t *testing.T) {
+	srv, client, db := NewTestApp(t)
+	defer srv.Close()
+	defer db.Close()
+
+	buf := &bytes.Buffer{}
+	v := url.Values{}
+	v.Set("email", "test@example.com")
+	v.Set("password", "123456789123")
+	resp, err := client.PostForm(srv.URL+"/login", v)
+	if err != nil {
+		t.Error(err)
+	}
+
+	buf.ReadFrom(resp.Body)
+	target := "User or password is incorrect."
+	if !strings.Contains(buf.String(), target) {
+		t.Errorf("The target [%s] was not found > %s", target, buf.String())
+	}
+
+	Teardown()
 }
