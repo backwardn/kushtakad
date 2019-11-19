@@ -64,34 +64,7 @@ func PostSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.HashPassword()
-
-	tx, err := app.DB.Begin(true)
-	if err != nil {
-		app.Fail(err.Error())
-		http.Redirect(w, r, "/setup", 302)
-		return
-	}
-
-	err = tx.Save(user)
-	if err != nil {
-		app.Fail(err.Error())
-		http.Redirect(w, r, "/setup", 302)
-		return
-	}
-
-	// create the default team
-	team := models.NewTeam()
-	team.Name = models.DefaultTeam
-	team.Members = append(team.Members, user.Email)
-	err = tx.Save(team)
-	if err != nil {
-		app.Fail(err.Error())
-		http.Redirect(w, r, "/setup", 302)
-		return
-	}
-
-	err = tx.Commit()
+	err = user.CreateAdmin(db)
 	if err != nil {
 		app.Fail(err.Error())
 		http.Redirect(w, r, "/setup", 302)

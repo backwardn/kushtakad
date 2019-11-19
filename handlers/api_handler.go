@@ -72,7 +72,6 @@ func GetConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDatabase(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Start")
 	app, err := state.Restore(r)
 	if err != nil {
 		log.Error(err)
@@ -103,7 +102,6 @@ func GetDatabase(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Debug("End")
 
 	return
 }

@@ -26,6 +26,8 @@ const UserStateKey = "UserState"
 const FormStateKey = "FormState"
 const FlashFail = "FlashFail"
 const FlashSuccess = "FlashSuccess"
+const SessionName = "_kushtaka"
+const AssetsFolder = "static"
 
 type App struct {
 	Response  http.ResponseWriter
@@ -109,7 +111,7 @@ func NewApp(cfg *Config) (*App, error) {
 	//hub := newServerHub(cfg.DB)
 	//go hub.run()
 
-	return &App{
+	app := &App{
 		//ServerHub: hub,
 		Response:  cfg.Reponse,
 		Request:   cfg.Request,
@@ -123,7 +125,15 @@ func NewApp(cfg *Config) (*App, error) {
 		Render:    ren,
 		View:      NewView(),
 		User:      &models.User{},
-	}, nil
+	}
+
+	app.RestoreFlash()
+	app.RestoreUser()
+	app.RestoreForm()
+	app.RestoreState()
+	app.RestoreURI()
+
+	return app, nil
 
 }
 

@@ -81,16 +81,15 @@ func (s *Settings) CreateIfNew() {
 	}
 
 	if len(s.URI) < 4 {
-		if env == StateDevelopment && env == StateTest {
+		if env == StateDevelopment || env == StateTest {
 			s.URI = "http://localhost:3000"
 		} else {
 			s.URI = "http://localhost:8080"
 		}
 	}
 
-
 	if len(s.BindAddr) < 4 {
-		if env == StateDevelopment && env == StateTest {
+		if env == StateDevelopment || env == StateTest {
 			s.BindAddr = "localhost:8080"
 		} else {
 			s.BindAddr = "0.0.0.0:8080"
@@ -127,7 +126,6 @@ func (s *Settings) WriteSettings(dir string) error {
 }
 
 func NewSettings(dir string) (*Settings, error) {
-	log.Debug("start")
 	settings := &Settings{}
 	fp := ServerCfgFile(dir)
 	jsonFile, err := os.Open(fp)
@@ -142,7 +140,6 @@ func NewSettings(dir string) (*Settings, error) {
 		return settings, err
 	}
 
-	log.Debug("end")
 	return settings, nil
 }
 

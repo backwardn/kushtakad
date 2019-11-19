@@ -28,7 +28,7 @@ var format = logging.MustStringFormatter(
 func Setup(sensor bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	box := packr.New(server.AssetsFolder, "../static")
+	box := packr.New(state.AssetsFolder, "../static")
 	err := state.SetupFileStructure(box)
 	if err != nil {
 		log.Fatalf("Failed to setup file structure : %s", err)

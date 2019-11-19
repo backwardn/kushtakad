@@ -6,17 +6,17 @@ const (
 	StateProduction  = "production"
 	StateTest        = "test"
 	StateDevelopment = "development"
-	prodDataDir      = "data"
-	testDataDir      = "data_test"
-	devDataDir       = "data_dev"
+	ProdDataDir      = "data"
+	TestDataDir      = "data_test"
+	DevDataDir       = "data_dev"
 )
 
 func DataDir() string {
 	env := os.Getenv("KUSHTAKA_ENV")
 	if env == StateDevelopment {
-		return devDataDir
+		return DevDataDir
 	} else if env == StateTest {
-		return testDataDir
+		return TestDataDir
 	}
-	return prodDataDir
+	return ProdDataDir
 }

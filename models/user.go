@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/asdine/storm"
 	validation "github.com/go-ozzo/ozzo-validation"
 	is "github.com/go-ozzo/ozzo-validation/is"
 	"golang.org/x/crypto/bcrypt"
@@ -96,6 +97,38 @@ func (u *User) Authenticate(password string) error {
 
 	// make sure the supplied password and
 	err := bcrypt.CompareHashAndPassword([]byte(u.Hash), []byte(password))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (user *User) CreateAdmin(db *storm.DB) error {
+
+	user.HashPassword()
+
+	tx, err := db.Begin(true)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = tx.Save(user)
+	if err != nil {
+		return err
+	}
+
+	// create the default team
+	team := NewTeam()
+	team.Name = DefaultTeam
+	team.Members = append(team.Members, user.Email)
+	err = tx.Save(team)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}

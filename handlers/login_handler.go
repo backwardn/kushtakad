@@ -7,21 +7,6 @@ import (
 	"github.com/kushtaka/kushtakad/state"
 )
 
-func PostLogout(w http.ResponseWriter, r *http.Request) {
-	app, err := state.Restore(r)
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = app.EndSession()
-	if err != nil {
-		log.Debug(err)
-		w.Write([]byte("{\"msg\":\"fail\"}"))
-	}
-
-	w.Write([]byte("{\"msg\":\"success\"}"))
-	return
-}
 func GetLogin(w http.ResponseWriter, r *http.Request) {
 	redir := "/kushtaka/dashboard/page/1/limit/100"
 	app, err := state.Restore(r)
@@ -37,6 +22,22 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 
 	ren := state.NewRender("admin/layouts/center", app.Box)
 	ren.HTML(w, http.StatusOK, "admin/pages/login", app.View)
+}
+
+func PostLogout(w http.ResponseWriter, r *http.Request) {
+	app, err := state.Restore(r)
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = app.EndSession()
+	if err != nil {
+		log.Debug(err)
+		w.Write([]byte("{\"msg\":\"fail\"}"))
+	}
+
+	w.Write([]byte("{\"msg\":\"success\"}"))
+	return
 }
 
 func PostLogin(w http.ResponseWriter, r *http.Request) {

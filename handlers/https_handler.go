@@ -36,7 +36,6 @@ func GetHttps(w http.ResponseWriter, r *http.Request) {
 }
 
 func PostTestFQDN(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Start")
 	app, err := state.Restore(r)
 	if err != nil {
 		resp := NewResponse("failed", "failed to restore", err)
@@ -98,7 +97,6 @@ func PostTestFQDN(w http.ResponseWriter, r *http.Request) {
 
 	resp := NewResponse("success", "Succes to test LETest", nil)
 	app.Render.JSON(w, 200, resp)
-	log.Debug("End")
 	return
 }
 
