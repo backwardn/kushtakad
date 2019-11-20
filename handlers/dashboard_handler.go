@@ -22,7 +22,7 @@ func GetDashboard(w http.ResponseWriter, r *http.Request) {
 	app.View.Pagi.Configure(len(events), r)
 
 	app.DB.All(&events, storm.Limit(app.View.Pagi.Limit), storm.Skip(app.View.Pagi.Offset), storm.Reverse())
-	log.Infof("total events found %d", len(events))
+	log.Debugf("total events found %d", len(events))
 
 	app.View.AddCrumb("Dashboard", "#")
 	app.View.Events = events

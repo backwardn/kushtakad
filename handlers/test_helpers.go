@@ -12,17 +12,16 @@ import (
 	"github.com/kushtaka/kushtakad/models"
 )
 
-func TestMain(m *testing.M) {
-	Teardown()
-	os.Setenv("KUSHTAKA_ENV", "test")
-	os.Exit(m.Run())
-}
-
 func Teardown() {
 	os.RemoveAll(helpers.TestDataDir)
 }
 
-func NewTestApp(t *testing.T) (*httptest.Server, *http.Client, *storm.DB) {
+func Buildup(t *testing.T) (*httptest.Server, *http.Client, *storm.DB) {
+
+	os.Setenv("KUSHTAKA_ENV", "test")
+
+	Teardown()
+
 	reboot := make(chan bool)
 	le := make(chan models.LE)
 	_, n, db := ConfigureServer(reboot, le)

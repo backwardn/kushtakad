@@ -41,32 +41,9 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := app.DB.Begin(true)
+	err = user.Delete(app.DB)
 	if err != nil {
-		resp = NewResponse("error", "Tx can't begin", err)
-		w.Write(resp.JSON())
-		return
-	}
-	defer tx.Rollback()
-
-	err = tx.One("ID", user.ID, &user)
-	if err != nil {
-		log.Error(err)
-		resp := NewResponse("error", "User id not found, does user exist?", err)
-		w.Write(resp.JSON())
-		return
-	}
-
-	err = tx.DeleteStruct(&user)
-	if err != nil {
-		resp := NewResponse("error", "Unable to delete user", err)
-		w.Write(resp.JSON())
-		return
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		resp := NewResponse("error", "Unable to commit tx", err)
+		resp = NewResponse("error", "Unable to delete the user", err)
 		w.Write(resp.JSON())
 		return
 	}
@@ -78,7 +55,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	redirUrl := "/kushtaka/dashboard/page/1/limit/100"
+	redirUrl := "/kushtaka/users/page/1/limit/100"
 	app, err := state.Restore(r)
 	if err != nil {
 		app.Fail(err.Error())
@@ -114,31 +91,8 @@ func PostUsers(w http.ResponseWriter, r *http.Request) {
 		PasswordConfirm: r.FormValue("password_confirm"),
 	}
 
-	err = user.ValidateCreateUser()
+	err = user.Create(db)
 	app.View.Forms.User = user
-	if err != nil {
-		app.Fail(err.Error())
-		http.Redirect(w, r, redir, 302)
-		return
-	}
-
-	user.HashPassword()
-
-	tx, err := app.DB.Begin(true)
-	if err != nil {
-		app.Fail(err.Error())
-		http.Redirect(w, r, redir, 302)
-		return
-	}
-
-	err = tx.Save(user)
-	if err != nil {
-		app.Fail(err.Error())
-		http.Redirect(w, r, redir, 302)
-		return
-	}
-
-	err = tx.Commit()
 	if err != nil {
 		app.Fail(err.Error())
 		http.Redirect(w, r, redir, 302)

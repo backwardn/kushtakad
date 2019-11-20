@@ -8,12 +8,15 @@ import (
 	"testing"
 )
 
-func TestGetLogin(t *testing.T) {
+// TestGetUsersNoAuth makes sure that the middleware is functioning
+// and that if you haven't logged in, it redirects you.
+func TestGetUsersNoAuth(t *testing.T) {
+	query := "/kushtaka/users/page/1/limit/100"
 	srv, client, db := Buildup(t)
 	defer srv.Close()
 	defer db.Close()
 
-	resp, err := client.Get(srv.URL + "/login")
+	resp, err := client.Get(srv.URL + query)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,8 +29,9 @@ func TestGetLogin(t *testing.T) {
 	buf.ReadFrom(resp.Body)
 
 	targets := []string{
-		"Password",
 		"Email",
+		"Password",
+		"You must login before proceeding.",
 	}
 
 	for _, target := range targets {
@@ -39,7 +43,8 @@ func TestGetLogin(t *testing.T) {
 	Teardown()
 }
 
-func TestPostLoginPasswordTooShort(t *testing.T) {
+func TestGetUsersEqualsOne(t *testing.T) {
+	query := "/kushtaka/users/page/1/limit/100"
 	srv, client, db := Buildup(t)
 	defer srv.Close()
 	defer db.Close()
@@ -54,33 +59,27 @@ func TestPostLoginPasswordTooShort(t *testing.T) {
 		t.Error(err)
 	}
 
-	buf.ReadFrom(resp.Body)
-	target := "Password: must be between 12-64 characters."
-	if !strings.Contains(buf.String(), target) {
-		t.Errorf("The target [%s] was not found > %s", target, buf.String())
-	}
+	buf.Reset()
 
-	Teardown()
-}
-
-func TestPostLoginPasswordIncorrect(t *testing.T) {
-	srv, client, db := Buildup(t)
-	defer srv.Close()
-	defer db.Close()
-
-	buf := &bytes.Buffer{}
-	v := url.Values{}
-	v.Set("email", "test@example.com")
-	v.Set("password", "123456789123")
-	resp, err := client.PostForm(srv.URL+"/login", v)
+	resp, err = client.Get(srv.URL + query)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
+	}
+
+	if status := resp.StatusCode; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
 	buf.ReadFrom(resp.Body)
-	target := "User or password is incorrect."
-	if !strings.Contains(buf.String(), target) {
-		t.Errorf("The target [%s] was not found > %s", target, buf.String())
+
+	targets := []string{
+		"test@example.com",
+	}
+
+	for _, target := range targets {
+		if !strings.Contains(buf.String(), target) {
+			t.Errorf("The target [%s] was not found > %s", target, buf.String())
+		}
 	}
 
 	Teardown()

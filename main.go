@@ -22,22 +22,21 @@ const empty = ""
 
 var log = logging.MustGetLogger("main")
 var format = logging.MustStringFormatter(
-	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	`%{color}%{time:2006-01-02 15:04:05.000000000 MST -07:00} %{id:03x} %{level:.4s} ▶ %{shortfunc} %{color:reset} %{message}`,
 )
 
 func Setup(sensor bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
+	// setup logfile
+	logfile := "server.log"
+	if sensor {
+		logfile = "sensor.log"
+	}
 
 	box := packr.New(state.AssetsFolder, "../static")
 	err := state.SetupFileStructure(box)
 	if err != nil {
 		log.Fatalf("Failed to setup file structure : %s", err)
-	}
-
-	// setup logfile
-	logfile := "server.log"
-	if sensor {
-		logfile = "sensor.log"
 	}
 
 	fp := filepath.Join(state.LogsLocation(), logfile)

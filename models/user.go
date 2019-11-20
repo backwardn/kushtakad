@@ -108,6 +108,11 @@ func (user *User) CreateAdmin(db *storm.DB) error {
 
 	user.HashPassword()
 
+	err := user.ValidateCreateUser()
+	if err != nil {
+		return err
+	}
+
 	tx, err := db.Begin(true)
 	if err != nil {
 		return err
@@ -124,6 +129,63 @@ func (user *User) CreateAdmin(db *storm.DB) error {
 	team.Name = DefaultTeam
 	team.Members = append(team.Members, user.Email)
 	err = tx.Save(team)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (user *User) Delete(db *storm.DB) error {
+
+	tx, err := db.Begin(true)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = tx.One("ID", user.ID, &user)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	err = tx.DeleteStruct(&user)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
+
+}
+
+func (user *User) Create(db *storm.DB) error {
+	user.HashPassword()
+
+	err := user.ValidateCreateUser()
+	if err != nil {
+		return err
+	}
+
+	tx, err := db.Begin(true)
+	if err != nil {
+		return err
+	}
+	defer db.Rollback()
+
+	err = tx.Save(user)
 	if err != nil {
 		return err
 	}
