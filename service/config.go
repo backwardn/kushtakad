@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/service/ftp"
 	"github.com/kushtaka/kushtakad/service/telnet"
 	"github.com/kushtaka/kushtakad/service/webserver"
@@ -39,7 +40,7 @@ type Comms struct {
 
 func ParseServices() (*Mapper, error) {
 
-	fp := filepath.Join("data", "services.json")
+	fp := filepath.Join(helpers.DataDir(), "services.json")
 	jsonFile, err := os.Open(fp)
 	if err != nil {
 		return nil, err
@@ -68,7 +69,7 @@ func ValidateAuth(host, apikey string) (*Auth, error) {
 }
 
 func ParseAuth() (*Auth, error) {
-	fp := filepath.Join("data", "sensor.json")
+	fp := filepath.Join(helpers.DataDir(), "sensor.json")
 	jsonFile, err := os.Open(fp)
 	if err != nil {
 		return nil, err
@@ -92,7 +93,6 @@ func LastHeartbeat() (time.Time, error) {
 }
 
 func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
-	log.Debug("Begin")
 	url := host + "/api/v1/config.json"
 
 	spaceClient := http.Client{
@@ -121,8 +121,6 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	log.Info("This is a tmpMap", tmpMap)
 
 	var svm []*ServiceMap
 	for _, v := range tmpMap {

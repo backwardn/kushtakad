@@ -121,17 +121,23 @@ func (s TelnetService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) 
 	term.SetPrompt(s.Prompt)
 
 	for {
-		line, err := term.ReadLine()
-		if err == io.EOF {
+		select {
+		case <-ctx.Done():
+			log.Debug("telnet done!")
 			return nil
-		} else if err != nil {
-			return err
-		}
+		default:
+			line, err := term.ReadLine()
+			if err == io.EOF {
+				return nil
+			} else if err != nil {
+				return err
+			}
 
-		if line == "" {
-			continue
-		}
+			if line == "" {
+				continue
+			}
 
-		term.Write([]byte(fmt.Sprintf("sh: %s: command not found\n", line)))
+			term.Write([]byte(fmt.Sprintf("sh: %s: command not found\n", line)))
+		}
 	}
 }

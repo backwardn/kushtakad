@@ -56,6 +56,7 @@ func NewSocket(sc SocketConfig) (Listener, error) {
 func (sl *socketListener) Start(ctx context.Context) error {
 	for _, address := range sl.Addresses {
 		if _, ok := address.(*net.TCPAddr); ok {
+
 			s := strings.Split(address.String(), ":")
 			addy := fmt.Sprintf("0.0.0.0:%s", s[1])
 			l, err := net.Listen(address.Network(), addy)
@@ -70,14 +71,31 @@ func (sl *socketListener) Start(ctx context.Context) error {
 				for {
 					c, err := l.Accept()
 					if err != nil {
-						log.Errorf("Error accepting connection: %s", err.Error())
+						if strings.Contains(err.Error(), "use of closed network connection") {
+							log.Errorf("Returning because socket is closed %v", err)
+							return
+						}
+						log.Errorf("Error accepting connection: %s %s", err.Error())
 						continue
 					}
 
 					sl.ch <- c
 				}
 			}()
-		} else if ua, ok := address.(*net.UDPAddr); ok {
+
+			go func() {
+				for {
+					select {
+					case <-ctx.Done():
+						l.Close()
+						log.Debug("Closing stuff!")
+						return
+					}
+				}
+
+			}()
+		}
+		/* else if ua, ok := address.(*net.UDPAddr); ok {
 			l, err := net.ListenUDP(address.Network(), ua)
 			if err != nil {
 				fmt.Println(color.RedString("Error starting listener: %s", err.Error()))
@@ -105,6 +123,7 @@ func (sl *socketListener) Start(ctx context.Context) error {
 				}
 			}()
 		}
+		*/
 	}
 
 	return nil

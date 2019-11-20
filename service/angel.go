@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 type ServiceAngel struct {
@@ -13,6 +15,7 @@ type ServiceAngel struct {
 	AngelCancel  context.CancelFunc
 	SensorCtx    context.Context
 	SensorCancel context.CancelFunc
+	Reboot       chan bool
 }
 
 func interuptor(cancel context.CancelFunc) {
@@ -29,41 +32,64 @@ func interuptor(cancel context.CancelFunc) {
 }
 
 func NewServiceAngel(auth *Auth) *ServiceAngel {
-	angelCtx, angelCancel := context.WithCancel(context.Background())
-	sensorCtx, sensorCancel := context.WithCancel(context.Background())
-	angel := &ServiceAngel{
-		Auth:         auth,
-		AngelCtx:     angelCtx,
-		AngelCancel:  angelCancel,
-		SensorCtx:    sensorCtx,
-		SensorCancel: sensorCancel,
-	}
-	interuptor(angel.AngelCancel)
-	return angel
+	a := &ServiceAngel{}
+	a.Auth = auth
+	a.AngelCtx, a.AngelCancel = context.WithCancel(context.Background())
+	a.SensorCtx, a.SensorCancel = context.WithCancel(context.Background())
+	a.Reboot = make(chan bool)
+	interuptor(a.AngelCancel)
+	return a
 }
 
-func Run(host, apikey string) {
+func CreateRun(host, apikey string) (*ServiceAngel, error) {
 	auth, err := ValidateAuth(host, apikey)
 	if err != nil {
-		log.Error("you must pass the cli values -host and -apikey |or| have a valid sensor.json file.")
-		log.Fatal(err)
+		return nil, err
 	}
-	log.Info(auth)
 
 	svm, err := HTTPServicesConfig(auth.Host, auth.Key)
 	if err != nil {
-		log.Error("Unable to get the config file for the sensor.")
-		log.Fatal(err)
+		return nil, err
 	}
-	log.Info(svm)
 
 	angel := NewServiceAngel(auth)
 	startSensor(auth, angel.SensorCtx, svm)
 
+	return angel, nil
+
+}
+
+func Run(host, apikey string) {
+	angel, err := CreateRun(host, apikey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	timer := time.NewTimer(time.Second * 3)
+	go func() {
+		<-timer.C
+		angel.SensorCancel()
+		fmt.Println("Timer expired")
+	}()
+
 	for {
 		select {
+		case <-angel.SensorCtx.Done():
+			log.Debug("Rebooting...")
+			angel, err = CreateRun(host, apikey)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			timer := time.NewTimer(time.Second * 3)
+			go func() {
+				<-timer.C
+				angel.SensorCancel()
+				fmt.Println("Timer expired")
+			}()
+
 		case <-angel.AngelCtx.Done(): // if the angel's context is closed
-			angel.SensorCtx.Done() // close the sensor's
+			angel.SensorCancel() // close the sensor's
 			log.Info("shutting down angel...done.")
 			return
 		default:

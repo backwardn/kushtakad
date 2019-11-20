@@ -58,15 +58,12 @@ func startSensor(auth *Auth, ctx context.Context, svm []*ServiceMap) {
 	}
 
 	go func() {
-		//TODO BenB: how to prevent this from eating so much CPU?
 		for {
 			conn, err := l.Accept()
 			if err != nil {
-				log.Fatal(err)
+				return
 			}
-
 			incoming <- conn
-
 			runtime.Gosched() // in case of goroutine starvation // with many connection and single procs
 		}
 	}()
@@ -76,20 +73,23 @@ func startSensor(auth *Auth, ctx context.Context, svm []*ServiceMap) {
 		log.Fatal(err)
 	}
 
+	time.Sleep(2 * time.Second)
+
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
+				log.Debug("Closing <-incoming goroutine")
 				return
 			case conn := <-incoming:
-				go h.handle(conn)
+				go h.handle(conn, ctx)
 			}
 		}
 	}()
 
 }
 
-func (h *Hub) handle(c net.Conn) {
+func (h *Hub) handle(c net.Conn, ctx context.Context) {
 
 	sm, newConn, err := h.findService(c)
 	if sm == nil {
@@ -100,8 +100,6 @@ func (h *Hub) handle(c net.Conn) {
 	log.Debugf("Handling connection for %s => %s %s(%s)", c.RemoteAddr(), c.LocalAddr(), sm.SensorName, sm.Type)
 
 	newConn = TimeoutConn(newConn, time.Second*30)
-
-	ctx := context.Background()
 
 	if err := sm.Service.Handle(ctx, newConn, sm.DB); err != nil {
 		log.Errorf(color.RedString("Error handling service: %s > %s", sm.Type, err.Error()))
