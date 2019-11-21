@@ -88,7 +88,7 @@ func (sl *socketListener) Start(ctx context.Context) error {
 					select {
 					case <-ctx.Done():
 						l.Close()
-						log.Debug("Closing stuff!")
+						log.Debugf("Closing socket on [%s]", addy)
 						return
 					}
 				}

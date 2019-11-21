@@ -155,7 +155,7 @@ func (em *EventManager) SendEvent(state, host, key string) error {
 	if err != nil {
 		return err
 	}
-	log.Debug(body)
+	log.Debug(string(body))
 
 	return nil
 

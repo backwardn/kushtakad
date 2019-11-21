@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"time"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -123,6 +124,7 @@ func UpdateSensorsTeam(w http.ResponseWriter, r *http.Request) {
 
 	// TODO - actually perform a lookup
 	sensor.TeamID = newsensor.TeamID
+	sensor.Updated = time.Now()
 
 	err = tx.Update(&sensor)
 	if err != nil {

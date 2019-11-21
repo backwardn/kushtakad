@@ -84,7 +84,8 @@ func ConfigureServer(r chan bool, l chan models.LE) (*models.Settings, *negroni.
 	api := mux.NewRouter().PathPrefix("/api/v1").Subrouter().StrictSlash(false)
 	api.Use(forceSetup)
 	api.Use(isAuthenticatedWithToken)
-	api.HandleFunc("/config.json", GetConfig).Methods("GET")
+	api.HandleFunc("/sensor.json", GetSensorConfig).Methods("GET")
+	api.HandleFunc("/service_map.json", GetServiceMapConfig).Methods("GET")
 	api.HandleFunc("/event.json", PostEvent).Methods("POST")
 	api.HandleFunc("/database/{dbname}", GetDatabase).Methods("GET")
 	// protected, can't process unless logged in and setup is complete

@@ -160,7 +160,7 @@ type FtpService struct {
 }
 
 func (s FtpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) error {
-
+	defer conn.Close()
 	ftpConn := s.server.newConn(conn, s.driver, s.recv)
 
 	split := strings.Split(conn.RemoteAddr().String(), ":")

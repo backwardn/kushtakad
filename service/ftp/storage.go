@@ -67,7 +67,7 @@ func (s *ftpStorage) Certificate() (*tls.Certificate, error) {
 	pemkey, errOut = s.Get(keyname)
 	if errOut != nil || len(pemkey) == 0 {
 		pemkey, errIn = generateKey()
-		log.Debugf("pemkey %s", pemkey)
+		//log.Debugf("pemkey %s", pemkey)
 		if errIn != nil {
 			log.Errorf("generateKey %v", errIn)
 			return nil, errIn
@@ -83,7 +83,7 @@ func (s *ftpStorage) Certificate() (*tls.Certificate, error) {
 	pemcert, errOut = s.Get(certname)
 	if errOut != nil || len(pemcert) == 0 {
 		pemcert, errIn = generateCert(pemkey)
-		log.Debugf("pemcert %s", pemcert)
+		//log.Debugf("pemcert %s", pemcert)
 		if errIn != nil {
 			log.Errorf("generateCert %v", errIn)
 			return nil, errIn
@@ -96,7 +96,7 @@ func (s *ftpStorage) Certificate() (*tls.Certificate, error) {
 		}
 	}
 
-	log.Debugf("key %s cert %s", pemkey, pemkey)
+	//log.Debugf("key %s cert %s", pemkey, pemkey)
 	tlscert, err := tls.X509KeyPair(pemcert, pemkey)
 	if err != nil {
 		log.Errorf("tls.X509KeyPair() %v", err)

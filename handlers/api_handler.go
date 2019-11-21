@@ -38,7 +38,33 @@ const sensorEventTmpl = `
 			EventState: %s
 			`
 
-func GetConfig(w http.ResponseWriter, r *http.Request) {
+func GetSensorConfig(w http.ResponseWriter, r *http.Request) {
+	var sensor models.Sensor
+	var apiKey string
+	app, err := state.Restore(r)
+	if err != nil {
+		app.Render.JSON(w, 404, err)
+		return
+	}
+
+	token, ok := r.Header["Authorization"]
+	if ok && len(token) >= 1 {
+		apiKey = token[0]
+		apiKey = strings.TrimPrefix(apiKey, "Bearer ")
+	}
+
+	err = app.DB.One("ApiKey", apiKey, &sensor)
+	if err != nil {
+		log.Debug(err)
+		app.Render.JSON(w, 200, err)
+		return
+	}
+
+	app.Render.JSON(w, http.StatusOK, sensor)
+	return
+}
+
+func GetServiceMapConfig(w http.ResponseWriter, r *http.Request) {
 	var sensor models.Sensor
 	var apiKey string
 	app, err := state.Restore(r)

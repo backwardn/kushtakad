@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/kushtaka/kushtakad/helpers"
+	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/service/ftp"
 	"github.com/kushtaka/kushtakad/service/telnet"
 	"github.com/kushtaka/kushtakad/service/webserver"
@@ -45,7 +47,7 @@ func ParseServices() (*Mapper, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Successfully Opened services.json")
+	log.Info("Successfully Opened services.json")
 	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -74,7 +76,7 @@ func ParseAuth() (*Auth, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Successfully Opened sensor.json")
+	log.Info("Successfully Opened sensor.json")
 	defer jsonFile.Close()
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
@@ -92,9 +94,7 @@ func LastHeartbeat() (time.Time, error) {
 	return time.Now(), errors.New("Time unknown")
 }
 
-func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
-	url := host + "/api/v1/config.json"
-
+func get(key, url string) (*http.Response, error) {
 	spaceClient := http.Client{
 		Timeout: time.Second * 5,
 	}
@@ -107,6 +107,40 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", key))
 
 	resp, err := spaceClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func HTTPSensorHealthCheckAndStatus(auth *Auth) (*models.Sensor, error) {
+	url := auth.Host + "/api/v1/sensor.json"
+
+	resp, err := get(auth.Key, url)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var sensor models.Sensor
+	err = json.Unmarshal(body, &sensor)
+	if err != nil {
+		return nil, err
+	}
+
+	return &sensor, nil
+
+}
+
+func HTTPServicesConfig(host, key string, ctx context.Context) ([]*ServiceMap, error) {
+	url := host + "/api/v1/service_map.json"
+
+	resp, err := get(key, url)
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +219,17 @@ func HTTPServicesConfig(host, key string) ([]*ServiceMap, error) {
 				log.Fatal(err)
 				return nil, err
 			}
+
+			go func() {
+				for {
+					select {
+					case <-ctx.Done():
+						db.Close()
+						log.Debugf("Closing cloned DB %s", newdbname)
+						return
+					}
+				}
+			}()
 
 			httpw.SetHost(host)
 			httpw.SetApiKey(key)
