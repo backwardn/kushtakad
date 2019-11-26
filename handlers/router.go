@@ -88,6 +88,7 @@ func ConfigureServer(r chan bool, l chan models.LE) (*models.Settings, *negroni.
 	api.HandleFunc("/service_map.json", GetServiceMapConfig).Methods("GET")
 	api.HandleFunc("/event.json", PostEvent).Methods("POST")
 	api.HandleFunc("/database/{dbname}", GetDatabase).Methods("GET")
+
 	// protected, can't process unless logged in and setup is complete
 	kushtaka := mux.NewRouter().PathPrefix("/kushtaka").Subrouter().StrictSlash(true)
 	kushtaka.Use(forceSetup)
@@ -247,7 +248,7 @@ func isAuthenticatedWithToken(next http.Handler) http.Handler {
 
 		var sensor models.Sensor
 		app.DB.One("ApiKey", apiKey, &sensor)
-		if subtle.ConstantTimeCompare([]byte(sensor.ApiKey), []byte(apiKey)) == 0 {
+		if subtle.ConstantTimeCompare([]byte(sensor.ApiKey), []byte(apiKey)) == 0 || sensor.ID == 0 {
 			app.Render.JSON(w, 401, "")
 			return
 		}

@@ -16,7 +16,7 @@ import (
 	"github.com/kushtaka/kushtakad/events"
 	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
-	"github.com/kushtaka/kushtakad/service"
+	"github.com/kushtaka/kushtakad/service/service"
 	"github.com/kushtaka/kushtakad/service/ftp"
 	"github.com/kushtaka/kushtakad/service/telnet"
 	"github.com/kushtaka/kushtakad/service/webserver"

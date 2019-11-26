@@ -1,5 +1,13 @@
+##
+## BUILDS
+## 
 builds:
--
+##
+## kushtakad
+##
+- id: kushtakad
+  main: ./main.go
+  binary: kushtakad
   goos:
     - darwin
     - linux
@@ -9,9 +17,42 @@ builds:
   env:
     - GO111MODULE=on
     - CGO_ENABLED=0
-  main: ./main.go
-  binary: kushtakad
 
+##
+## kushtakad-server
+##
+- id: kushtakad-server
+  main: ./server/main.go
+  binary: kushtakad-server
+  goos:
+    - darwin
+    - linux
+    - windows
+  goarch:
+    - amd64
+  env:
+    - GO111MODULE=on
+    - CGO_ENABLED=0
+
+##
+## kushtakad-sensor
+##
+- id: kushtakad-sensor
+  main: ./service/main.go
+  binary: kushtakad-sensor
+  goos:
+    - darwin
+    - linux
+    - windows
+  goarch:
+    - amd64
+  env:
+    - GO111MODULE=on
+    - CGO_ENABLED=0
+
+##
+## BEFORE
+## 
 before:
   hooks:
     - go mod download
@@ -27,8 +68,34 @@ snapshot:
 changelog:
   sort: asc
 
+##
+## ARCHIVES
+##
 archives:
+  ##
+  ## kushtakad
+  ##
   - id: kushtakad
+    format: gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+    - none*
+  ##
+  ## kushtakad-server
+  ##
+  - id: kushtakad-server
+    format: gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+    - none*
+  ##
+  ## kushtakad-sensor
+  ##
+  - id: kushtakad-sensor
     format: gz
     format_overrides:
       - goos: windows

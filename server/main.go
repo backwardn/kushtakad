@@ -11,9 +11,8 @@ import (
 	"github.com/asdine/storm"
 	"github.com/gobuffalo/packr/v2"
 	"github.com/kushtaka/kushtakad/models"
-	"github.com/kushtaka/kushtakad/server/server"
-	"github.com/kushtaka/kushtakad/service/service"
 	"github.com/kushtaka/kushtakad/state"
+	"github.com/kushtaka/kushtakad/server/server"
 	"github.com/op/go-logging"
 	"github.com/pkg/errors"
 )
@@ -25,13 +24,10 @@ var format = logging.MustStringFormatter(
 	`%{color}%{time:2006-01-02 15:04:05.000000000 MST -07:00} %{id:03x} %{level:.4s} ▶ %{shortfunc} %{color:reset} %{message}`,
 )
 
-func Setup(sensor bool) {
+func Setup() {
 	rand.Seed(time.Now().UTC().UnixNano())
 	// setup logfile
 	logfile := "server.log"
-	if sensor {
-		logfile = "sensor.log"
-	}
 
 	box := packr.New(state.AssetsFolder, "../static")
 	err := state.SetupFileStructure(box)
@@ -119,12 +115,9 @@ func main() {
 
 	adminuser := flag.String("email", empty, "set the email of the kushtakad admin user (string)")
 	adminpass := flag.String("password", empty, "set the password of the kushtakad admin user (string)")
-	host := flag.String("host", empty, "the hostname of the kushtakad orchestrator server (string)")
-	apikey := flag.String("apikey", empty, "the api key of the sensor, create from the kushtaka dashboard. (string)")
-	sensor := flag.Bool("sensor", false, "would you like this instance to be a sensor? (bool)")
 	flag.Parse()
 
-	Setup(*sensor)
+	Setup()
 	didTry, err := tryResetAdmin(*adminuser, *adminpass)
 	if err != nil {
 		log.Fatalf("Failed to reset/setup admin email and password > %v", err)
@@ -134,9 +127,5 @@ func main() {
 		return
 	}
 
-	if *sensor {
-		service.Run(*host, *apikey)
-	} else {
-		server.Run()
-	}
+	server.Run()
 }
