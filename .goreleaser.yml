@@ -19,38 +19,6 @@ builds:
     - CGO_ENABLED=0
 
 ##
-## kushtakad-server
-##
-- id: kushtakad-server
-  main: ./server/main.go
-  binary: kushtakad-server
-  goos:
-    - darwin
-    - linux
-    - windows
-  goarch:
-    - amd64
-  env:
-    - GO111MODULE=on
-    - CGO_ENABLED=0
-
-##
-## kushtakad-sensor
-##
-- id: kushtakad-sensor
-  main: ./service/main.go
-  binary: kushtakad-sensor
-  goos:
-    - darwin
-    - linux
-    - windows
-  goarch:
-    - amd64
-  env:
-    - GO111MODULE=on
-    - CGO_ENABLED=0
-
-##
 ## BEFORE
 ## 
 before:
@@ -82,23 +50,60 @@ archives:
         format: zip
     files:
     - none*
-  ##
-  ## kushtakad-server
-  ##
-  - id: kushtakad-server
-    format: gz
-    format_overrides:
-      - goos: windows
-        format: zip
-    files:
-    - none*
-  ##
-  ## kushtakad-sensor
-  ##
-  - id: kushtakad-sensor
-    format: gz
-    format_overrides:
-      - goos: windows
-        format: zip
-    files:
-    - none*
+
+##
+## SNAPS
+##
+snapcrafts:
+  - id: server-daemon
+
+    name_template: "{{ .ProjectName }}_server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+    replacements:
+      amd64: 64-bit
+      darwin: macOS
+      linux: Tux
+
+    name: kushtakad-server
+    summary: Kushtakad Server
+    description: Kushtaka.org is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
+
+    license: Apache-2.0
+    publish: false
+    grade: devel
+    confinement: devmode
+    #grade: edge
+    #base: core18
+    #confinement: classic
+    apps:
+      kushtakad:
+        plugs: ["network", "network-bind"]
+        daemon: simple
+
+  - id: sensor-daemon
+
+    name_template: "{{ .ProjectName }}_sensor_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+    replacements:
+      amd64: 64-bit
+      darwin: macOS
+      linux: Tux
+
+    name: kushtakad-sensor
+    summary: Kushtakad Sensor
+    description: Kushtaka.org is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
+
+    license: Apache-2.0
+    publish: false
+    grade: devel
+    confinement: devmode
+    #base: core18
+    #grade: edge
+    #confinement: classic
+    apps:
+      kushtakad:
+        plugs: ["network", "network-bind"]
+        daemon: simple
+        args: -sensor
+
+    plugs:
