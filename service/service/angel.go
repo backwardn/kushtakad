@@ -102,8 +102,6 @@ func Run() {
 			angel.SensorCancel() // close the sensor's
 			log.Info("shutting down angel...done.")
 			return
-		default:
-
 		}
 	}
 
