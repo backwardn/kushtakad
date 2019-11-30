@@ -26,6 +26,7 @@ import (
 	"github.com/asdine/storm"
 	"github.com/fatih/color"
 	"github.com/kushtaka/kushtakad/listener"
+	"github.com/kushtaka/kushtakad/models"
 )
 
 func configureServices(h *Hub, svm []*ServiceMap) listener.SocketConfig {
@@ -44,7 +45,7 @@ func configureServices(h *Hub, svm []*ServiceMap) listener.SocketConfig {
 
 }
 
-func startSensor(auth *Auth, ctx context.Context, svm []*ServiceMap) {
+func startSensor(auth *models.Auth, ctx context.Context, svm []*ServiceMap) {
 
 	h := &Hub{Auth: auth, ports: make(map[net.Addr][]*ServiceMap)}
 
@@ -112,7 +113,7 @@ type Hub struct {
 	// Maps a port and a protocol to an array of pointers to services
 	ports map[net.Addr][]*ServiceMap
 
-	Auth *Auth
+	Auth *models.Auth
 }
 
 // Wraps a Servicer, adding some metadata

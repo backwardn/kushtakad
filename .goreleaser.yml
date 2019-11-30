@@ -18,32 +18,6 @@ builds:
     - GO111MODULE=on
     - CGO_ENABLED=0
 
-- id: kushtakad-server
-  main: ./main.go
-  binary: kushtakad-server
-  goos:
-    - darwin
-    - linux
-    - windows
-  goarch:
-    - amd64
-  env:
-    - GO111MODULE=on
-    - CGO_ENABLED=0
-
-- id: kushtakad-sensor
-  main: ./main.go
-  binary: kushtakad-sensor
-  goos:
-    - darwin
-    - linux
-    - windows
-  goarch:
-    - amd64
-  env:
-    - GO111MODULE=on
-    - CGO_ENABLED=0
-
 ##
 ## BEFORE
 ## 
@@ -83,57 +57,32 @@ archives:
 ## SNAPS
 ##
 snapcrafts:
-  - id: kushtakad-server
-    builds:
-    - kushtakad-server
+  - id: kushtakad
 
-    name_template: "{{ .ProjectName }}_server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-
+    name: kushtakad
+    summary: Kushtakad
+    description: Kushtaka.org is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
+    license: Apache-2.0
+    publish: false
+    grade: beta
+    confinement: strict
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     replacements:
       amd64: 64-bit
       darwin: macOS
       linux: Tux
 
-    name: kushtakad-server
-    summary: Kushtakad Server
-    description: Kushtaka.org is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
-
-    license: Apache-2.0
-    publish: false
-    grade: beta
-    confinement: strict
-    #grade: edge
-    #base: core18
-    #confinement: classic
     apps:
-      kushtakad-server:
-        plugs: ["network", "network-bind"]
-        daemon: simple
-
-  - id: kushtakad-sensor
-    builds:
-    - kushtakad-sensor
-
-    name_template: "{{ .ProjectName }}_sensor_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-
-    replacements:
-      amd64: 64-bit
-      darwin: macOS
-      linux: Tux
-
-    name: kushtakad-sensor
-    summary: Kushtakad Sensor
-    description: Kushtaka.org is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
-
-    license: Apache-2.0
-    publish: false
-    grade: beta
-    confinement: strict
-    #base: core18
-    #grade: edge
-    #confinement: classic
-    apps:
-      kushtakad-sensor:
+      set:
+      sensor:
         plugs: ["network", "network-bind"]
         daemon: simple
         args: -sensor
+      server:
+        plugs: ["network", "network-bind"]
+        daemon: simple
+        args: -server
+
+    #grade: edge
+    #base: core18
+    #confinement: classic

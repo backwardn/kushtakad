@@ -11,7 +11,7 @@ import (
 )
 
 type ServiceAngel struct {
-	Auth *Auth
+	Auth *models.Auth
 
 	AngelCtx    context.Context
 	AngelCancel context.CancelFunc
@@ -36,7 +36,7 @@ func interuptor(cancel context.CancelFunc) {
 
 }
 
-func NewServiceAngel(auth *Auth, sensor *models.Sensor) *ServiceAngel {
+func NewServiceAngel(auth *models.Auth, sensor *models.Sensor) *ServiceAngel {
 	a := &ServiceAngel{}
 	a.AngelCtx, a.AngelCancel = context.WithCancel(context.Background())
 	a.SensorCtx, a.SensorCancel = context.WithCancel(context.Background())
@@ -47,8 +47,8 @@ func NewServiceAngel(auth *Auth, sensor *models.Sensor) *ServiceAngel {
 	return a
 }
 
-func CreateRun(host, apikey string) (*ServiceAngel, error) {
-	auth, err := ValidateAuth(host, apikey)
+func CreateRun() (*ServiceAngel, error) {
+	auth, err := ValidateAuth()
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func CreateRun(host, apikey string) (*ServiceAngel, error) {
 
 }
 
-func Run(host, apikey string) {
-	angel, err := CreateRun(host, apikey)
+func Run() {
+	angel, err := CreateRun()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func Run(host, apikey string) {
 
 		case <-angel.SensorCtx.Done():
 			log.Debug("Rebooting...")
-			angel, err = CreateRun(host, apikey)
+			angel, err = CreateRun()
 			if err != nil {
 				log.Fatal(err)
 			}

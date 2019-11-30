@@ -15,6 +15,7 @@ import (
 const (
 	SettingsID   = 1
 	ServerConfig = "server.json"
+	SensorConfig = "sensor.json"
 	DataDir      = "data"
 )
 
@@ -118,7 +119,7 @@ func (s *Settings) WriteSettings(dir string) error {
 	}
 
 	fp := ServerCfgFile(dir)
-	err = ioutil.WriteFile(fp, b, 0644)
+	err = ioutil.WriteFile(fp, b, 0666)
 	if err != nil {
 		return err
 	}
@@ -150,6 +151,15 @@ func ServerCfgFile(dir string) string {
 	}
 
 	return path.Join(cwd, dir, ServerConfig)
+}
+
+func SensorCfgFile(dir string) string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "SensorConfig() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, dir, SensorConfig)
 }
 
 // Get preferred outbound ip of this machine

@@ -27,11 +27,6 @@ const auth = "sensor.json"
 const services = "services.json"
 const lastHeartbeat = "lastheartbeat.txt"
 
-type Auth struct {
-	Key  string `json:"key"`
-	Host string `json:"host"`
-}
-
 type Mapper struct {
 	ServiceMap []*ServiceMap
 }
@@ -61,16 +56,11 @@ func ParseServices() (*Mapper, error) {
 	return mapper, nil
 }
 
-func ValidateAuth(host, apikey string) (*Auth, error) {
-
-	if len(host) > 0 && len(apikey) == 32 {
-		return &Auth{Key: apikey, Host: host}, nil
-	}
-
+func ValidateAuth() (*models.Auth, error) {
 	return ParseAuth()
 }
 
-func ParseAuth() (*Auth, error) {
+func ParseAuth() (*models.Auth, error) {
 	fp := filepath.Join(helpers.DataDir(), "sensor.json")
 	jsonFile, err := os.Open(fp)
 	if err != nil {
@@ -81,7 +71,7 @@ func ParseAuth() (*Auth, error) {
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
-	var auth *Auth
+	var auth *models.Auth
 	err = json.Unmarshal(byteValue, &auth)
 	if err != nil {
 		return nil, err
@@ -114,7 +104,7 @@ func get(key, url string) (*http.Response, error) {
 	return resp, nil
 }
 
-func HTTPSensorHealthCheckAndStatus(auth *Auth) (*models.Sensor, error) {
+func HTTPSensorHealthCheckAndStatus(auth *models.Auth) (*models.Sensor, error) {
 	url := auth.Host + "/api/v1/sensor.json"
 
 	resp, err := get(auth.Key, url)

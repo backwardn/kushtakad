@@ -41,6 +41,7 @@ var (
 	clonesServerPath string
 	clonesSensorPath string
 	logsPath         string
+	sensorCfgPath    string
 )
 
 // SetupFileStructure makes sure the files on the file system are in the correct state
@@ -58,7 +59,7 @@ func SetupFileStructure(box *packr.Box) error {
 
 	imagesPath = path.Join(cwd, helpers.DataDir(), imagesDir)
 	if _, err := os.Stat(imagesPath); os.IsNotExist(err) {
-		err = os.MkdirAll(imagesPath, 0744)
+		err = os.MkdirAll(imagesPath, 0644)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", imagesPath))
 		}
@@ -66,7 +67,7 @@ func SetupFileStructure(box *packr.Box) error {
 
 	sessionsPath = path.Join(cwd, helpers.DataDir(), sessionsDir)
 	if _, err := os.Stat(sessionsPath); os.IsNotExist(err) {
-		err = os.MkdirAll(sessionsPath, 0744)
+		err = os.MkdirAll(sessionsPath, 0644)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", sessionsPath))
 		}
@@ -74,7 +75,7 @@ func SetupFileStructure(box *packr.Box) error {
 
 	logsPath = path.Join(cwd, helpers.DataDir(), logsDir)
 	if _, err := os.Stat(logsPath); os.IsNotExist(err) {
-		err = os.MkdirAll(logsPath, 0744)
+		err = os.MkdirAll(logsPath, 0644)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", logsPath))
 		}
@@ -82,7 +83,7 @@ func SetupFileStructure(box *packr.Box) error {
 
 	acmeProdPath = path.Join(cwd, helpers.DataDir(), acmeDir, acmeProd)
 	if _, err := os.Stat(acmeProdPath); os.IsNotExist(err) {
-		err = os.MkdirAll(acmeProdPath, 0744)
+		err = os.MkdirAll(acmeProdPath, 0644)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", acmeProdPath))
 		}
@@ -90,7 +91,7 @@ func SetupFileStructure(box *packr.Box) error {
 
 	acmeTestPath = path.Join(cwd, helpers.DataDir(), acmeDir, acmeTest)
 	if _, err := os.Stat(acmeTestPath); os.IsNotExist(err) {
-		err = os.MkdirAll(acmeTestPath, 0744)
+		err = os.MkdirAll(acmeTestPath, 0644)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", acmeTestPath))
 		}
@@ -98,7 +99,7 @@ func SetupFileStructure(box *packr.Box) error {
 
 	clonesPath = path.Join(cwd, helpers.DataDir(), clonesDir)
 	if _, err := os.Stat(clonesPath); os.IsNotExist(err) {
-		err = os.MkdirAll(clonesPath, 0744)
+		err = os.MkdirAll(clonesPath, 0644)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", clonesPath))
 		}
@@ -106,7 +107,7 @@ func SetupFileStructure(box *packr.Box) error {
 
 	clonesSensorPath = path.Join(cwd, helpers.DataDir(), clonesDir, clonesSensor)
 	if _, err := os.Stat(clonesSensorPath); os.IsNotExist(err) {
-		err = os.MkdirAll(clonesSensorPath, 0744)
+		err = os.MkdirAll(clonesSensorPath, 0644)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", clonesSensorPath))
 		}
@@ -114,7 +115,7 @@ func SetupFileStructure(box *packr.Box) error {
 
 	clonesServerPath = path.Join(cwd, helpers.DataDir(), clonesDir, clonesServer)
 	if _, err := os.Stat(clonesServerPath); os.IsNotExist(err) {
-		err = os.MkdirAll(clonesServerPath, 0744)
+		err = os.MkdirAll(clonesServerPath, 0644)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", clonesServerPath))
 		}
@@ -131,7 +132,7 @@ func createFiles(b *packr.Box) error {
 		fullDir := path.Join(themePath, dir)
 
 		if _, err := os.Stat(fullDir); os.IsNotExist(err) {
-			err = os.MkdirAll(fullDir, 0744)
+			err = os.MkdirAll(fullDir, 0644)
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", dir))
 			}
@@ -186,6 +187,15 @@ func ClonesLocation() string {
 	}
 
 	return path.Join(cwd, helpers.DataDir(), clonesDir)
+}
+
+func SensorCfgLocation() string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "SensorCfgLocation() unable to detect current working directory"))
+	}
+
+	return path.Join(cwd, helpers.DataDir(), sensorCfg)
 }
 
 func ServerCfgLocation() string {
