@@ -22,6 +22,7 @@ import (
 	"github.com/asdine/storm"
 	"github.com/kushtaka/kushtakad/events"
 	"github.com/kushtaka/kushtakad/service/filesystem"
+	"github.com/kushtaka/kushtakad/state"
 )
 
 func (s FtpService) SetHost(h string) {
@@ -68,17 +69,7 @@ func (f *FtpService) ConfigureAndRun() {
 		f.server.ExplicitFTPS = false
 	}
 
-	base, root, err := store.FileSystem()
-	if err != nil {
-		log.Criticalf("Filesystem() failed: %v", err)
-	}
-
-	if base == "" {
-		log.Debugf("FsRoot err : %s", f.FsRoot)
-		base = f.FsRoot
-	}
-
-	fs, err := filesystem.New(base, "ftp", root)
+	fs, err := filesystem.New(state.TmpDirLocation(), "ftp", f.ServerName)
 	if err != nil {
 		log.Debugf("FTP Filesystem error: %s", err.Error())
 	}
@@ -124,15 +115,7 @@ func FTP() *FtpService {
 		s.server.ExplicitFTPS = true
 	}
 
-	base, root, err := store.FileSystem()
-	if err != nil {
-		log.Critical(err)
-	}
-	if base == "" {
-		base = s.FsRoot
-	}
-
-	fs, err := filesystem.New(base, "ftp", root)
+	fs, err := filesystem.New(state.TmpDirLocation(), "ftp", s.ServerName)
 	if err != nil {
 		log.Debugf("FTP Filesystem error: %s", err.Error())
 	}

@@ -45,7 +45,7 @@ func Setup(sensor bool) {
 
 	fp := filepath.Join(state.LogsLocation(), logfile)
 
-	lf, err := os.OpenFile(fp, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	lf, err := os.OpenFile(fp, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
@@ -134,6 +134,12 @@ func createSensorCfg(apikey, host string) error {
 		sensorCfgPath = path.Join(cwd, helpers.DataDir())
 	}
 
+	if _, err := os.Stat(sensorCfgPath); os.IsNotExist(err) {
+		err = os.MkdirAll(sensorCfgPath, 0744)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("unable to make directory %s", sensorCfgPath))
+		}
+	}
 	a := &models.Auth{
 		Host: host,
 		Key:  apikey,
@@ -145,7 +151,7 @@ func createSensorCfg(apikey, host string) error {
 	}
 
 	fp := path.Join(sensorCfgPath, "sensor.json")
-	err = ioutil.WriteFile(fp, b, 0666)
+	err = ioutil.WriteFile(fp, b, 0744)
 	if err != nil {
 		return err
 	}

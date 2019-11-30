@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/kushtaka/kushtakad/storage"
+	"github.com/kushtaka/kushtakad/state"
 )
 
 func getStorage() (*ftpStorage, error) {
@@ -41,11 +42,8 @@ type ftpStorage struct {
 }
 
 func (s *ftpStorage) FileSystem() (base, serviceroot string, err error) {
-	b, err := s.Get("base")
-	if err != nil {
-		return "", "", err
-	}
-	base = string(b)
+
+	base = state.TmpDirLocation()
 
 	sr, err := s.Get("fs_root")
 	if err != nil {
