@@ -48,7 +48,7 @@ if (!(Test-Path 'C:\Program Files\kushtaka\version')) { Add-Content -Path 'C:\Pr
 # Add scheduled task if it does not exist
 if (!(Get-ScheduledTask | Where-Object { $_.TaskName -eq 'kushtaka'})) { 
     # Set up task to start application at startup (will move to service in the future)
-    if ($server) { $actions = (New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Bypass -File "C:\Program Files\kushtaka\Update-Kushtaka.ps1"'),(New-ScheduledTaskAction -Execute 'C:\Program Files\kushtaka\kushtakad.exe') }
+    if ($server) { $actions = (New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Bypass -File "C:\Program Files\kushtaka\Update-Kushtaka.ps1"'),(New-ScheduledTaskAction -Execute 'C:\Program Files\kushtaka\kushtakad.exe' -Argument '-server') }
     if ($sensor) { $actions = (New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Bypass -File "C:\Program Files\kushtaka\Update-Kushtaka.ps1"'),(New-ScheduledTaskAction -Execute 'C:\Program Files\kushtaka\kushtakad.exe' -Argument '-sensor') }
     $trigger = New-ScheduledTaskTrigger -AtStartup
     Register-ScheduledTask -Action $actions -Trigger $trigger -TaskName "kushtaka" -User "NT AUTHORITY\SYSTEM"

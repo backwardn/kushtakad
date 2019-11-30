@@ -64,7 +64,7 @@ snapcrafts:
     description: Kushtaka.org is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
     license: Apache-2.0
     publish: false
-    grade: beta
+    grade: devel
     confinement: strict
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     replacements:
@@ -73,7 +73,7 @@ snapcrafts:
       linux: Tux
 
     apps:
-      set:
+      config:
       sensor:
         plugs: ["network", "network-bind"]
         daemon: simple

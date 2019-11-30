@@ -123,8 +123,6 @@ func tryResetAdmin(user, pass string) (bool, error) {
 func createSensorCfg(apikey, host string) error {
 	var sensorCfgPath string
 
-	fmt.Println(os.Getenv("SNAP_DATA"))
-
 	if len(os.Getenv("SNAP_DATA")) > 10 {
 		sensorCfgPath = path.Join(os.Getenv("SNAP_DATA"), "data")
 	} else {
