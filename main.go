@@ -182,7 +182,6 @@ func trySensorCfg(apikey, host string) (bool, error) {
 
 func main() {
 
-	fmt.Println("Jared", os.Getenv("SNAP_DATA"))
 	// server mode flags
 	email := flag.String("email", empty, "set the email of the kushtakad admin user (string)")
 	password := flag.String("password", empty, "set the password of the kushtakad admin user (string)")
