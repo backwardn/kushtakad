@@ -60,10 +60,11 @@ snapcrafts:
   - id: kushtakad
 
     name: kushtakad
-    summary: Kushtakad
+    summary: Kushtakad act as either a server or sensor 
     description: Kushtaka.org is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
     license: Apache-2.0
     publish: false
+    base: core18
     grade: devel
     confinement: strict
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
@@ -82,7 +83,3 @@ snapcrafts:
         plugs: ["network", "network-bind"]
         daemon: simple
         args: -server
-
-    #grade: edge
-    #base: core18
-    #confinement: classic
