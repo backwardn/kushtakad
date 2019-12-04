@@ -87,10 +87,9 @@ func Run() {
 				log.Error(err)
 			}
 
-			if sensor.Updated.After(angel.Sensor.Updated) {
+			if shouldCancel(angel, sensor) {
 				angel.SensorCancel()
 			}
-
 		case <-angel.SensorCtx.Done():
 			log.Debug("Rebooting...")
 			angel, err = CreateRun()
@@ -105,4 +104,19 @@ func Run() {
 		}
 	}
 
+}
+
+func shouldCancel(angel *ServiceAngel, sensor *models.Sensor) bool {
+
+	if sensor == nil {
+		log.Error("Unable to cancel sensor as sensor is nil")
+		return false
+	}
+
+	if !sensor.Updated.After(angel.Sensor.Updated) {
+		log.Errorf("On file last update %s : From server last update : %s  ", angel.Sensor.Updated, sensor.Updated)
+		return false
+	}
+
+	return true
 }
