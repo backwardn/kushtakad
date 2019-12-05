@@ -1,10 +1,14 @@
-### For the beta the following documentation will be the primary resource
+![kushtaka_logo](https://raw.githubusercontent.com/kushtaka/kushtakad/master/static/admin/assets/images/logo.svg) 
 
-##### GitBook
+# Kushtaka 
 
-[gitbook.io](https://jfolkins.gitbook.io/kushtaka/)
+Kushtakad is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams.
 
-##### Site
+## Documenation
+
+[Documentation](https://kushtaka.gitbook.io)
+
+## Website
 
 [kushtaka.org](https://www.kushtaka.org)
 
