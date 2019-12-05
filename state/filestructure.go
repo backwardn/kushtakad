@@ -32,7 +32,6 @@ const (
 
 var (
 	dataDir          string
-	cwd              string
 	themePath        string
 	imagesPath       string
 	sessionsPath     string
@@ -49,17 +48,10 @@ var (
 // SetupFileStructure makes sure the files on the file system are in the correct state
 // if they are not, the application must fail
 func SetupFileStructure(box *packr.Box) error {
-	var err error
-
 	// setup data dir base on environment
 	dataDir = helpers.DataDir()
 
-	cwd, err = os.Getwd()
-	if err != nil {
-		return errors.Wrap(err, "unable to detect current working directory")
-	}
-
-	imagesPath = path.Join(cwd, helpers.DataDir(), imagesDir)
+	imagesPath = path.Join(Wd(), helpers.DataDir(), imagesDir)
 	if _, err := os.Stat(imagesPath); os.IsNotExist(err) {
 		err = os.MkdirAll(imagesPath, 0744)
 		if err != nil {
@@ -67,7 +59,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	sessionsPath = path.Join(cwd, helpers.DataDir(), sessionsDir)
+	sessionsPath = path.Join(Wd(), helpers.DataDir(), sessionsDir)
 	if _, err := os.Stat(sessionsPath); os.IsNotExist(err) {
 		err = os.MkdirAll(sessionsPath, 0744)
 		if err != nil {
@@ -75,7 +67,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	logsPath = path.Join(cwd, helpers.DataDir(), logsDir)
+	logsPath = path.Join(Wd(), helpers.DataDir(), logsDir)
 	if _, err := os.Stat(logsPath); os.IsNotExist(err) {
 		err = os.MkdirAll(logsPath, 0744)
 		if err != nil {
@@ -83,7 +75,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	acmeProdPath = path.Join(cwd, helpers.DataDir(), acmeDir, acmeProd)
+	acmeProdPath = path.Join(Wd(), helpers.DataDir(), acmeDir, acmeProd)
 	if _, err := os.Stat(acmeProdPath); os.IsNotExist(err) {
 		err = os.MkdirAll(acmeProdPath, 0744)
 		if err != nil {
@@ -91,7 +83,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	acmeTestPath = path.Join(cwd, helpers.DataDir(), acmeDir, acmeTest)
+	acmeTestPath = path.Join(Wd(), helpers.DataDir(), acmeDir, acmeTest)
 	if _, err := os.Stat(acmeTestPath); os.IsNotExist(err) {
 		err = os.MkdirAll(acmeTestPath, 0744)
 		if err != nil {
@@ -99,7 +91,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	clonesPath = path.Join(cwd, helpers.DataDir(), clonesDir)
+	clonesPath = path.Join(Wd(), helpers.DataDir(), clonesDir)
 	if _, err := os.Stat(clonesPath); os.IsNotExist(err) {
 		err = os.MkdirAll(clonesPath, 0744)
 		if err != nil {
@@ -107,7 +99,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	clonesSensorPath = path.Join(cwd, helpers.DataDir(), clonesDir, clonesSensor)
+	clonesSensorPath = path.Join(Wd(), helpers.DataDir(), clonesDir, clonesSensor)
 	if _, err := os.Stat(clonesSensorPath); os.IsNotExist(err) {
 		err = os.MkdirAll(clonesSensorPath, 0744)
 		if err != nil {
@@ -115,7 +107,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	clonesServerPath = path.Join(cwd, helpers.DataDir(), clonesDir, clonesServer)
+	clonesServerPath = path.Join(Wd(), helpers.DataDir(), clonesDir, clonesServer)
 	if _, err := os.Stat(clonesServerPath); os.IsNotExist(err) {
 		err = os.MkdirAll(clonesServerPath, 0744)
 		if err != nil {
@@ -123,7 +115,7 @@ func SetupFileStructure(box *packr.Box) error {
 		}
 	}
 
-	tmpPath = path.Join(cwd, helpers.DataDir(), tmpDir)
+	tmpPath = path.Join(Wd(), helpers.DataDir(), tmpDir)
 	if _, err := os.Stat(tmpPath); os.IsNotExist(err) {
 		err = os.MkdirAll(tmpPath, 0744)
 		if err != nil {
@@ -178,12 +170,7 @@ func DbSensorLocation() string {
 }
 
 func DbLocationWithName(dbname string) string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "DbLocationWithName() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), dbname)
+	return path.Join(Wd(), helpers.DataDir(), dbname)
 }
 
 func DbWithLocationWithName(location, dbname string) string {
@@ -191,100 +178,61 @@ func DbWithLocationWithName(location, dbname string) string {
 }
 
 func ClonesLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "ClonesLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), clonesDir)
+	return path.Join(Wd(), helpers.DataDir(), clonesDir)
 }
 
 func SensorCfgLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "SensorCfgLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), sensorCfg)
+	return path.Join(Wd(), helpers.DataDir(), sensorCfg)
 }
 
 func ServerCfgLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "ServerCfgLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), serverCfg)
+	return path.Join(Wd(), helpers.DataDir(), serverCfg)
 }
 
 func SensorClonesLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "SensorClonesLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), clonesDir, clonesSensor)
+	return path.Join(Wd(), helpers.DataDir(), clonesDir, clonesSensor)
 }
 
 func LogsLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "LogsLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), logsDir)
+	return path.Join(Wd(), helpers.DataDir(), logsDir)
 }
 
 func TmpDirLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "TmpDirLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), tmpDir)
+	return path.Join(Wd(), helpers.DataDir(), tmpDir)
 }
 
 func ServerClonesLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "ClonesLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), clonesDir, clonesServer)
+	return path.Join(Wd(), helpers.DataDir(), clonesDir, clonesServer)
 }
 
 func SessionLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "SessionLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), sessionsDir)
+	return path.Join(Wd(), helpers.DataDir(), sessionsDir)
 }
 
 func AcmeProdLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "AcmeProdLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), acmeDir, acmeProd)
+	return path.Join(Wd(), helpers.DataDir(), acmeDir, acmeProd)
 }
 
 func AcmeTestLocation() string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "AcmeTestLocation() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, helpers.DataDir(), acmeDir, acmeTest)
+	return path.Join(Wd(), helpers.DataDir(), acmeDir, acmeTest)
 }
 
 func DataDirLocation() string {
+
+	return path.Join(Wd(), helpers.DataDir())
+}
+
+// Wd returns the acting current working directory
+// this path can change for certain configs
+func Wd() string {
+	if len(os.Getenv("SNAP_DATA")) > 1 {
+		return path.Join(os.Getenv("SNAP_DATA"))
+	}
 	cwd, err := os.Getwd()
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "helpers.DataDir()Location() unable to detect current working directory"))
+		log.Fatal(errors.Wrap(err, "Cwd () unable to detect current working directory"))
 	}
 
-	return path.Join(cwd, helpers.DataDir())
+	return cwd
+
 }

@@ -13,7 +13,6 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/gobuffalo/packr/v2"
-	"github.com/kushtaka/kushtakad/helpers"
 	"github.com/kushtaka/kushtakad/models"
 	"github.com/kushtaka/kushtakad/server/server"
 	"github.com/kushtaka/kushtakad/service/service"
@@ -121,18 +120,9 @@ func tryResetAdmin(user, pass string) (bool, error) {
 }
 
 func createSensorCfg(apikey, host string) error {
-	var sensorCfgPath string
+	sensorCfgPath := state.DataDirLocation()
 
-	if len(os.Getenv("SNAP_DATA")) > 10 {
-		sensorCfgPath = path.Join(os.Getenv("SNAP_DATA"), "data")
-	} else {
-		cwd, err := os.Getwd()
-		if err != nil {
-			log.Fatal(errors.Wrap(err, "Cwd () unable to detect current working directory"))
-		}
-
-		sensorCfgPath = path.Join(cwd, helpers.DataDir())
-	}
+	fmt.Println("The path for the sensor.json file is %v", sensorCfgPath)
 
 	if _, err := os.Stat(sensorCfgPath); os.IsNotExist(err) {
 		err = os.MkdirAll(sensorCfgPath, 0744)
