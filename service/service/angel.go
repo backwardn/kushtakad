@@ -77,7 +77,7 @@ func Run() {
 		log.Fatal(err)
 	}
 
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(30 * time.Second)
 
 	for {
 		select {

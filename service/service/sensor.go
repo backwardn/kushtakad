@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/asdine/storm"
-	"github.com/fatih/color"
 	"github.com/kushtaka/kushtakad/listener"
 	"github.com/kushtaka/kushtakad/models"
 )
@@ -62,6 +61,7 @@ func startSensor(auth *models.Auth, ctx context.Context, svm []*ServiceMap) {
 		for {
 			conn, err := l.Accept()
 			if err != nil {
+				log.Errorf("Accept() errors %v", err)
 				return
 			}
 			incoming <- conn
@@ -100,10 +100,13 @@ func (h *Hub) handle(c net.Conn, ctx context.Context) {
 
 	log.Debugf("Handling connection for %s => %s %s(%s)", c.RemoteAddr(), c.LocalAddr(), sm.SensorName, sm.Type)
 
-	newConn = TimeoutConn(newConn, time.Second*30)
+	if sm.Type != "http" {
+		log.Debug("Adding a timeout for type %v", sm.Type)
+		newConn = TimeoutConn(newConn, time.Second*30)
+	}
 
 	if err := sm.Service.Handle(ctx, newConn, sm.DB); err != nil {
-		log.Errorf(color.RedString("Error handling service: %s > %s", sm.Type, err.Error()))
+		log.Errorf("Error handling service: %s > %s", sm.Type, err.Error())
 	}
 }
 

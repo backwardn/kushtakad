@@ -92,15 +92,18 @@ func (s *HttpService) CanHandle(payload []byte) bool {
 
 func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) error {
 
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				conn.Close()
-				log.Debug("Closing Http Conn & DB")
+	/*
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					log.Debug("Start closing conn")
+					conn.Close()
+					log.Debug("End closing conn")
+				}
 			}
-		}
-	}()
+		}()
+	*/
 
 	for {
 		br := bufio.NewReader(conn)
@@ -109,6 +112,7 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 		if err == io.EOF {
 			return nil
 		} else if err != nil {
+			log.Error(err)
 			return err
 		}
 		defer req.Body.Close()
@@ -118,6 +122,7 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 		n, err := req.Body.Read(body)
 		if err == io.EOF {
 		} else if err != nil {
+			log.Error(err)
 			return err
 		}
 

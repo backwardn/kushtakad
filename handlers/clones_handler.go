@@ -177,6 +177,24 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// make root / if one does not exist
+	var res clone.Res
+	var rd clone.Redirect
+	db.One("URL", "/", &res)
+	db.One("URL", "/", &rd)
+
+	if res.ID == 0 && rd.ID == 0 {
+		rd.URL = "/"
+		rd.StatusCode = 302
+		rd.GotoURL = fqdn.RequestURI()
+		err := db.Save(rd)
+		if err != nil {
+			app.Fail(err.Error())
+			http.Redirect(w, r, redir, 302)
+			return
+		}
+	}
+
 	app.View.Forms = state.NewForms()
 	app.Success(fmt.Sprintf("The clone [%s] was created successfully.", sc.FQDN))
 	http.Redirect(w, r, redir, 302)
