@@ -74,7 +74,7 @@ snapcrafts:
       linux: Tux
 
     apps:
-      kushtakad.conf:
+      conf:
       sensor:
         plugs: ["network", "network-bind"]
         daemon: simple
