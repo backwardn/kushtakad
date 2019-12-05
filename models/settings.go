@@ -145,21 +145,26 @@ func NewSettings(dir string) (*Settings, error) {
 }
 
 func ServerCfgFile(dir string) string {
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "ServerCfgFile() unable to detect current working directory"))
-	}
-
-	return path.Join(cwd, dir, ServerConfig)
+	return path.Join(Wd(), dir, ServerConfig)
 }
 
 func SensorCfgFile(dir string) string {
+	return path.Join(Wd(), dir, SensorConfig)
+}
+
+// Wd returns the acting current working directory
+// this path can change for certain configs
+func Wd() string {
+	if len(os.Getenv("SNAP_DATA")) > 1 {
+		return path.Join(os.Getenv("SNAP_DATA"))
+	}
 	cwd, err := os.Getwd()
 	if err != nil {
-		log.Fatal(errors.Wrap(err, "SensorConfig() unable to detect current working directory"))
+		log.Fatal(errors.Wrap(err, "Cwd () unable to detect current working directory"))
 	}
 
-	return path.Join(cwd, dir, SensorConfig)
+	return cwd
+
 }
 
 // Get preferred outbound ip of this machine
