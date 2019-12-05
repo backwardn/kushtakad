@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"strconv"
 
 	"github.com/kushtaka/kushtakad/clone"
@@ -49,6 +51,14 @@ func DeleteClone(w http.ResponseWriter, r *http.Request) {
 	err = tx.DeleteStruct(&clone)
 	if err != nil {
 		resp := NewResponse("error", "Unable to update clone", err)
+		w.Write(resp.JSON())
+		return
+	}
+
+	fp := path.Join(state.ServerClonesLocation(), clone.Hostname)
+	err = os.Remove(fp)
+	if err != nil {
+		resp := NewResponse("error", "Unable to delete cloned db", err)
 		w.Write(resp.JSON())
 		return
 	}
@@ -184,11 +194,14 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 	db.One("URL", "/", &rd)
 
 	if res.ID == 0 && rd.ID == 0 {
-		rd.URL = "/"
-		rd.StatusCode = 302
-		rd.GotoURL = fqdn.RequestURI()
-		err := db.Save(rd)
+		newrd := &clone.Redirect{
+			URL:        "/",
+			StatusCode: 302,
+			GotoURL:    fqdn.RequestURI(),
+		}
+		err := db.Save(newrd)
 		if err != nil {
+			log.Errorf("Unable to save missing Redirect in clone > %v", err)
 			app.Fail(err.Error())
 			http.Redirect(w, r, redir, 302)
 			return

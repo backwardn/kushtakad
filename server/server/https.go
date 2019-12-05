@@ -108,10 +108,10 @@ func HTTP(settings *models.Settings, n *negroni.Negroni) *http.Server {
 	srv := &http.Server{
 		Addr:              fmt.Sprintf("%s:%s", settings.Host, settings.Port),
 		Handler:           n,
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       5 * time.Second,
-		WriteTimeout:      5 * time.Second,
-		IdleTimeout:       5 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      2 * time.Minute,
+		IdleTimeout:       5 * time.Minute,
 	}
 
 	go func() {
