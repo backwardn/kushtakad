@@ -1,4 +1,4 @@
-![kushtaka_logo](https://raw.githubusercontent.com/kushtaka/kushtakad/master/static/admin/assets/images/logo.svg?sanitize=true) 
+<img src="https://raw.githubusercontent.com/kushtaka/kushtakad/master/static/admin/assets/images/logo.svg?sanitize=true" height="300" width="300">
 
 # Kushtaka 
 
