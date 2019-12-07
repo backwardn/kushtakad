@@ -18,7 +18,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kushtaka/kushtakad/storage"
+	"github.com/asdine/storm"
+	"github.com/gobuffalo/packr/v2"
+	"github.com/kushtaka/kushtakad/helpers"
+	"github.com/kushtaka/kushtakad/models"
+	"github.com/kushtaka/kushtakad/state"
 )
 
 const (
@@ -30,14 +34,46 @@ var (
 	clt, srv net.Conn
 )
 
-func TestMain(m *testing.M) {
-	storage.SetDataDir("/tmp")
-	os.Exit(m.Run())
+func Teardown() {
+	os.RemoveAll(helpers.TestDataDir)
+}
+
+func Buildup(t *testing.T) *storm.DB {
+
+	os.Setenv("KUSHTAKA_ENV", "test")
+
+	Teardown()
+
+	box := packr.New("static", "../static")
+
+	err := state.SetupFileStructure(box)
+	if err != nil {
+		t.Error(err)
+	}
+
+	db, err := storm.Open(state.DbLocation())
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = models.Reindex(db)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// must setup the basic hashes and settings for application to function
+	_, err = models.InitSettings(helpers.DataDir())
+	if err != nil {
+		t.Error(err)
+	}
+
+	return db
 }
 
 func TestFTP(t *testing.T) {
 
 	//Setup client and server
+	db := Buildup(t)
 	clt, srv = net.Pipe()
 	defer clt.Close()
 	defer srv.Close()
@@ -47,7 +83,7 @@ func TestFTP(t *testing.T) {
 
 	//Handle the connection
 	go func(conn net.Conn) {
-		if err := s.Handle(nil, conn); err != nil {
+		if err := s.Handle(nil, conn, db); err != nil {
 			t.Fatal(err)
 		}
 	}(srv)
