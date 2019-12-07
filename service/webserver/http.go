@@ -130,6 +130,7 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 		io.Copy(ioutil.Discard, req.Body)
 
 		u := req.URL.RequestURI()
+		log.Debugf("The request uri is %v", u)
 
 		var redir Redirect
 		err = db.One("URL", u, &redir)
@@ -195,7 +196,7 @@ func (s HttpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) er
 				}
 
 				if err := resp.Write(conn); err != nil {
-					log.Debug(err)
+					log.Error(err)
 					return err
 				}
 

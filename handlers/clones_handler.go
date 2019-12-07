@@ -197,8 +197,11 @@ func PostClones(w http.ResponseWriter, r *http.Request) {
 		newrd := &clone.Redirect{
 			URL:        "/",
 			StatusCode: 302,
+			Headers:    make(http.Header),
 			GotoURL:    fqdn.RequestURI(),
 		}
+
+		newrd.Headers.Add("Location", fqdn.RequestURI())
 		err := db.Save(newrd)
 		if err != nil {
 			log.Errorf("Unable to save missing Redirect in clone > %v", err)
