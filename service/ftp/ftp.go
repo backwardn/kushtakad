@@ -149,11 +149,15 @@ func (s FtpService) Handle(ctx context.Context, conn net.Conn, db *storm.DB) err
 	split := strings.Split(conn.RemoteAddr().String(), ":")
 	network := conn.RemoteAddr().Network()
 	ip := split[0]
+	attackerPort := ""
+	if len(split) > 1 {
+		attackerPort = split[1]
+	}
 	es := &events.EventSensor{
 		SensorID:     s.SensorID,
 		Type:         "ftp",
 		Port:         s.Port,
-		AttackerPort: split[1],
+		AttackerPort: attackerPort,
 	}
 	em := events.NewSensorEventManager(network, ip, es)
 	err := em.SendEvent("new", s.Host, s.ApiKey)
