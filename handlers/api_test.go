@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/asdine/storm"
