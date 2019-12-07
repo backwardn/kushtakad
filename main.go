@@ -122,7 +122,7 @@ func tryResetAdmin(user, pass string) (bool, error) {
 func createSensorCfg(apikey, host string) error {
 	sensorCfgPath := state.DataDirLocation()
 
-	fmt.Println("The path for the sensor.json file is %v", sensorCfgPath)
+	fmt.Printf("The path for the sensor.json file is %v\n", sensorCfgPath)
 
 	if _, err := os.Stat(sensorCfgPath); os.IsNotExist(err) {
 		err = os.MkdirAll(sensorCfgPath, 0744)
