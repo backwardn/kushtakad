@@ -113,7 +113,7 @@ func newSessionID() string {
 func (conn *Conn) Serve() {
 	log.Debugf("%s: Connection Established", conn.sessionid)
 	// send welcome
-	conn.writeMessage(220, conn.server.WelcomeMessage)
+	conn.writeBanner(220, conn.server.WelcomeMessage)
 
 	log.Debugf("%s: Writing Welcome Message", conn.server.WelcomeMessage)
 	// read commands
@@ -193,6 +193,17 @@ func (conn *Conn) parseLine(line string) (string, string) {
 		return params[0], ""
 	}
 	return params[0], strings.TrimSpace(params[1])
+}
+
+// writeMessage will send a standard FTP response back to the client.
+func (conn *Conn) writeBanner(code int, message string) (wrote int, err error) {
+	if message == "" {
+		message = statusText[code]
+	}
+	line := fmt.Sprintf("%d %s", code, message)
+	wrote, err = conn.controlWriter.WriteString(line)
+	conn.controlWriter.Flush()
+	return
 }
 
 // writeMessage will send a standard FTP response back to the client.
