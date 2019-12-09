@@ -10,6 +10,6 @@ Kushtakad is a sustainable all-in-one honeypot and honeytoken orchestrator for u
 
 ## Website
 
-[kushtaka.org](https://www.kushtaka.org)
+[kushtaka.io](https://www.kushtaka.io)
 
 
