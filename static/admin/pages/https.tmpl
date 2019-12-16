@@ -58,6 +58,7 @@
         </div>
 
         {{ template "admin/modals/preloader" . }}
+        {{ template "admin/modals/test_preloader" . }}
 
 </div>
 
@@ -75,7 +76,6 @@
     });
 
     $(document).ready(function(){
-
         $('.tooltipped').tooltip();
     });
 
@@ -102,7 +102,11 @@
     function postTest() {
         var url = uri + "/test"
         var data = getForm();
-        M.toast({html: "Testing fqdn...", classes: 'orange lighten-1'})
+        // M.toast({html: "Testing fqdn...", classes: 'orange lighten-1'})
+
+        var modalElement = document.getElementById("test-preloader-modal");
+        var instance = M.Modal.getInstance(modalElement);
+        instance.open();
 
         fetch(url, {
         method: 'POST', // or 'PUT'
@@ -113,6 +117,8 @@
         }).then(res => res.json())
         .then(response => respTestFunc(response))
         .catch(error => errc(error));
+
+        setTimeout("location.href = '/kushtaka/https';", 10000);
     }
 
     function answer(test, type) {
@@ -127,27 +133,6 @@
             st.classList.add("red-text");
             st.innerHTML = "No";
         }
-    }
-    function respTestFunc(resp) {
-        /*
-        var allTestsPassed = true;
-        toasty(resp.Status, resp.Message);
-        if (!resp.Test) {
-            allTestsPassed = false;
-        }
-        answer(resp.Obj.Test, resp.Type);
-
-        var button = document.getElementById("reboot");
-        if (allTestsPassed) {
-            button.classList.remove("disabled");
-            button.classList.add("teal")
-            button.classList.add("lighten-1")
-        //} else {
-        //     button.classList.remove("disabled");
-        //    button.classList.add("red")
-        //    button.classList.add("lighten-1")
-        }
-        */
     }
 
     function toasty(status, message) {
@@ -181,6 +166,22 @@
 
         setTimeout("location.href = 'https://" + data.FQDN + "/kushtaka/https';", 20000);
 
+    }
+
+    function respTestFunc(resp) {
+        if (resp.Status === "success") {
+            setInterval(function() {
+                var elem = document.getElementById("test-preloader-timer");
+                console.log(elem);
+                var toInt = parseInt(elem.textContent);
+                elem.textContent = toInt - 1; 
+                }, 1000);
+        } else {
+            M.toast({html: resp.Message , classes: 'red lighten-1'})
+            var modalElement = document.getElementById("test-preloader-modal");
+            var instance = M.Modal.getInstance(modalElement);
+            instance.close();
+        }
     }
 
 
