@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/asdine/storm"
@@ -21,12 +22,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-const empty = ""
-
 var log = logging.MustGetLogger("main")
 var format = logging.MustStringFormatter(
 	`%{color}%{time:2006-01-02 15:04:05.000000000 MST -07:00} %{id:03x} %{level:.4s} ▶ %{shortfunc} %{color:reset} %{message}`,
 )
+
+const empty = ""
+
+var commit, date, version string
 
 func Setup(sensor bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -178,16 +181,27 @@ func trySensorCfg(apikey, host string) (bool, error) {
 
 func main() {
 
-	// server mode flags
-	email := flag.String("email", empty, "set the email of the kushtakad admin user (string)")
-	password := flag.String("password", empty, "set the password of the kushtakad admin user (string)")
-	serv := flag.Bool("server", false, "would you like this instance to be a server? (bool)")
+	// is it going to be a sensor or server
+	sensor := flag.Bool("sensor", false, "Would you like this instance to run as a sensor?")
+	serv := flag.Bool("server", false, "Would you like this instance to run as a server?")
 
-	// sensor mode flags
-	host := flag.String("host", empty, "the hostname of the kushtakad orchestrator server (string)")
-	apikey := flag.String("apikey", empty, "the api key of the sensor, create from the kushtaka dashboard. (string)")
-	sensor := flag.Bool("sensor", false, "would you like this instance to be a sensor? (bool)")
+	// for a server, set the email and password
+	email := flag.String("email", empty, "Set the email of the kushtakad admin user.")
+	password := flag.String("password", empty, "Set the password of the kushtakad admin user.")
+
+	// for a sensor, set the host and apikey
+	host := flag.String("host", empty, "Set the hostname of the kushtakad orchestrator server.")
+	apikey := flag.String("apikey", empty, "Set the api key of the sensor, found on the kushtaka dashboard.")
+
+	// version flag
+	ver := flag.Bool("version", false, "What version of kushtakad is this?")
+
 	flag.Parse()
+
+	if *ver {
+		fmt.Printf("kushstakad|%v|%v|%v\n", version, runtime.GOOS, runtime.GOARCH)
+		return
+	}
 
 	Setup(*sensor)
 
