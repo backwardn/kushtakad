@@ -8,38 +8,37 @@ import (
 	"os"
 	"path"
 
+	"github.com/gofrs/uuid"
 	"github.com/gorilla/securecookie"
 	"github.com/pkg/errors"
 )
 
 const (
-	SettingsID   = 1
-	ServerConfig = "server.json"
-	SensorConfig = "sensor.json"
-	DataDir      = "data"
-)
-
-type Settings struct {
-	SessionHash  []byte `json:"session_hash"`
-	SessionBlock []byte `json:"session_block"`
-	CsrfHash     []byte `json:"csrf_hash"`
-	BindAddr     string `json:"bind_addr"`
-	URI          string `json:"base_uri"`
-	LeEnabled    bool   `json:"lets_encrypt"`
-	Host         string `json:"-"`
-	Port         string `json:"-"`
-	Scheme       string `json:"-"`
-	FQDN         string `json:"-"`
-}
-
-const (
+	ServerConfig     = "server.json"
+	SensorConfig     = "sensor.json"
+	DataDir          = "data"
 	StateProduction  = "production"
 	StateTest        = "test"
 	StateDevelopment = "development"
 	prodDataDir      = "data"
 	testDataDir      = "data_test"
 	devDataDir       = "data_dev"
+	ZeroUUID         = "00000000-0000-0000-0000-000000000000"
 )
+
+type Settings struct {
+	UUID         uuid.UUID `json:"uuid"`
+	SessionHash  []byte    `json:"session_hash"`
+	SessionBlock []byte    `json:"session_block"`
+	CsrfHash     []byte    `json:"csrf_hash"`
+	BindAddr     string    `json:"bind_addr"`
+	URI          string    `json:"base_uri"`
+	LeEnabled    bool      `json:"lets_encrypt"`
+	Host         string    `json:"-"`
+	Port         string    `json:"-"`
+	Scheme       string    `json:"-"`
+	FQDN         string    `json:"-"`
+}
 
 func (s *Settings) BuildBindAddr() {
 	host, port, err := net.SplitHostPort(s.BindAddr)
@@ -69,6 +68,12 @@ func (s *Settings) BuildBaseURI() string {
 
 func (s *Settings) CreateIfNew() {
 	env := os.Getenv("KUSHTAKA_ENV")
+
+	log.Debug((len(s.UUID.String())))
+	if len(s.UUID.String()) != 36 || s.UUID.String() == ZeroUUID {
+		s.UUID = uuid.Must(uuid.NewV4())
+	}
+
 	if len(s.SessionHash) != 32 {
 		s.SessionHash = securecookie.GenerateRandomKey(32)
 	}

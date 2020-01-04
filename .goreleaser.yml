@@ -18,6 +18,8 @@ builds:
     - GO111MODULE=on
     - CGO_ENABLED=0
 
+  ldflags:
+    - -s -w -X main.version={{.Version}} -X github.com/kushtaka/kushtakad/version.current={{.Version}}
 ##
 ## BEFORE
 ## 
@@ -61,7 +63,7 @@ snapcrafts:
 
     name: kushtakad
     summary: Kushtakad act as either a server or sensor 
-    description: Kushtaka.org is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
+    description: Kushtaka.io is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
     license: Apache-2.0
     publish: false
     base: core18
@@ -83,3 +85,75 @@ snapcrafts:
         plugs: ["network", "network-bind"]
         daemon: simple
         args: -server
+
+##
+## NFPMS
+##
+
+# .goreleaser.yml
+nfpms:
+  # note that this is an array of nfpm configs
+  -
+    # ID of the nfpm config, must be unique.
+    # Defaults to "default".
+    id: kushtakad
+
+    # Name of the package.
+    # Defaults to `ProjectName`.
+    package_name: kushtakad
+
+    # You can change the file name of the package.
+    # Default: `{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}`
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+    # Build IDs for the builds you want to create NFPM packages for.
+    # Defaults to all builds.
+    builds:
+    - kushtakad
+
+    # Replacements for GOOS and GOARCH in the package name.
+    # Keys should be valid GOOSs or GOARCHs.
+    # Values are the respective replacements.
+    # Default is empty.
+    replacements:
+      amd64: 64-bit
+      386: 32-bit
+      darwin: macOS
+      linux: Tux
+
+    # Your app's vendor.
+    # Default is empty.
+    vendor: kushtaka
+    # Your app's homepage.
+    # Default is empty.
+    homepage: https://kushtaka.io/
+
+    # Your app's maintainer (probably you).
+    # Default is empty.
+    maintainer: Jared Folkins <jfolkins@gmail.com>
+
+    # Your app's description.
+    # Default is empty.
+    description: Kushtaka.io is a sustainable all-in-one honeypot and honeytoken orchestrator for under-resourced Blue Teams. 
+
+    # Your app's license.
+    # Default is empty.
+    license: Proprietary
+
+    # Formats to be generated.
+    formats:
+      - deb
+      - rpm
+
+    # Override default /usr/local/bin destination for binaries
+    bindir: /kushtaka
+
+    # Package epoch.
+    # Defaults to empty.
+    epoch: 1
+
+    # Empty folders that should be created and managed by the packager
+    # implementation.
+    # Default is empty.
+    empty_folders:
+    - /kushtaka

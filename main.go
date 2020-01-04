@@ -18,6 +18,7 @@ import (
 	"github.com/kushtaka/kushtakad/server/server"
 	"github.com/kushtaka/kushtakad/service/service"
 	"github.com/kushtaka/kushtakad/state"
+	"github.com/kushtaka/kushtakad/version"
 	"github.com/op/go-logging"
 	"github.com/pkg/errors"
 )
@@ -28,8 +29,6 @@ var format = logging.MustStringFormatter(
 )
 
 const empty = ""
-
-var commit, date, version string
 
 func Setup(sensor bool) {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -199,7 +198,7 @@ func main() {
 	flag.Parse()
 
 	if *ver {
-		fmt.Printf("kushstakad|%v|%v|%v\n", version, runtime.GOOS, runtime.GOARCH)
+		fmt.Printf("kushstakad|%v|%v|%v\n", version.Current(), runtime.GOOS, runtime.GOARCH)
 		return
 	}
 
